@@ -6,6 +6,8 @@ const MODEL = process.env.MODEL || 'claude-sonnet-5-5';
 const STYLES = ['Renaissance','Baroque','Romanticism','Realism','Impressionism','Post-Impressionism','Cubism','Surrealism',
   'Abstract Expressionism','Pop Art','Watercolor','Oil Painting','Charcoal (Black & White)','Pastel','Cartoonish'];
 const BRUSHES = ['watercolor','charcoal','pastel','pencil','ink','oil','marker','dots','facet','smudge','blend'];
+const FIX_TOOLS = ['heal','blend','smudge','eraser','watercolor','charcoal','pastel','pencil','ink','oil','marker','dots','facet'];
+const img = data => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } });
 
 const PERSONA = `You are Mr. Paul, a warm, encouraging art teacher inside "The Art Studio", an online painting tool from NuSpark Publishing.
 Speak clearly and simply to curious beginners of any age. Be friendly and specific. No baby talk, few exclamation points.
@@ -74,7 +76,7 @@ Recommend how to approach it. Return JSON:
     } else if (mode === 'lesson') {
       const style = str(body.style, 60);
       if (!style) return bad(res, 400, 'Name a style.');
-      maxTokens = 800;
+      maxTokens = 1400;
       content = `Teach a short beginner lesson on the art style or medium: "${style}".
 If it is not a real art style or medium, pick the closest real one and say so in "about".
 Return JSON:
@@ -84,7 +86,10 @@ Return JSON:
  "tip":"one paint-along tip",
  "brushes":["2-4 from: ${BRUSHES.join(', ')}"],
  "palette":["#hex", ...6 colors typical of the style],
- "paper":"one of: cold, smooth, toned, canvas"}`;
+ "paper":"one of: cold, smooth, toned, canvas",
+ "history":"2-3 sentences: when and where it began, why, and how it influenced art",
+ "artistInfo":[{"name":"real artist","known":"one line on what they are known for"}],  (2-4, only real, well-documented artists)
+ "works":[{"title":"real, famous work","artist":"its artist","year":"year or range"}]}  (2-4, only real, well-documented works; family-friendly; leave out anything you are unsure of)`;
     } else if (mode === 'outline') {
       const subject = str(body.subject, 80);
       if (!subject) return bad(res, 400, 'Say what to outline.');
@@ -98,18 +103,24 @@ Return JSON: {"paths":["SVG path d strings using only M L H V C S Q T A Z comman
       const image = str(body.image, 2000000);
       if (image.length < 100) return bad(res, 400, 'No painting received.');
       const style = str(body.style, 60), vision = str(body.vision, 600);
-      maxTokens = 1000;
-      content = [
-        { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } },
-        { type: 'text', text: `This is a student's painting${style ? ` in the style of ${style}` : ''}${vision ? `. Their idea: "${vision}"` : ''}.
-Give encouraging, specific feedback as an art teacher, and point out spots that may need fixing: stray marks or specks, rough or pasted-looking edges, gaps, or areas that clash with the style.
+      maxTokens = 1600;
+      content = [img(image), { type: 'text', text: `This is a student's painting${style ? ` in the style of ${style}` : ''}${vision ? `. Their idea: "${vision}"` : ''}.
+Give encouraging, specific feedback as an art teacher, and point out spots that need fixing: stray marks or specks, rough or pasted-looking edges, gaps, or areas that clash with the style.
+For every spot, tell the student EXACTLY what to do, step by step, using the studio's real tools and controls:
+- Touch-up tools (left side): Heal (covers marks with surrounding colors), Blend (softens and mixes), Smudge (drags paint), Eraser, and Paint (uses a paint brush: watercolor, charcoal, pastel, pencil, ink, oil, marker, dots, facet).
+- Controls (right side): Color picker, palette circles, "Pick color" eyedropper (tap it, then tap the painting), Brush size slider (2-140), Strength slider.
+Steps must be short actions a beginner can follow, naming the exact tool, slider and setting, e.g. "Tap Blend on the left." "Set Brush size to about 25." "Brush gently along the edge of the dog."
 Return JSON:
 {"summary":"2 warm sentences",
  "strengths":["2 specific things that work"],
- "tips":["2-3 specific, doable suggestions, naming studio tools where useful"],
- "spots":[{"x":0.0-1.0 (fraction of width from left),"y":0.0-1.0 (fraction of height from top),"r":0.02-0.12 (radius as fraction of width),"note":"what to fix there, under 15 words"}]}
-Include 0 to 6 spots, only where something truly needs attention.` }
-      ];
+ "tips":["2 big-picture suggestions for next time"],
+ "spots":[{"x":0.0-1.0 (fraction of width from left),"y":0.0-1.0 (fraction of height from top),"r":0.02-0.12 (radius as fraction of width),
+   "title":"what's wrong, under 10 words",
+   "steps":["3-5 instructions, each one short action, no numbers in front"],
+   "tool":"one of: ${FIX_TOOLS.join(', ')}",
+   "color":"#hex to paint with if the fix needs paint (match the surrounding color), otherwise null",
+   "size":brush size number 2-140}]}
+Include 0 to 6 spots, only where something truly needs attention.` }];
     } else if (mode === 'ask') {
       const q = str(body.question, 500);
       if (!q) return bad(res, 400, 'Ask a question.');
@@ -122,6 +133,26 @@ Return JSON: {"answer":"your answer"}`;
       content = image.length > 100
         ? [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } }, { type: 'text', text }]
         : text;
+    } else if (mode === 'pro') {
+      const image = str(body.image, 2000000);
+      if (image.length < 100) return bad(res, 400, 'No painting received.');
+      const style = str(body.style, 60) || 'the style that best suits it', vision = str(body.vision, 600), portrait = !!body.portrait;
+      maxTokens = 900;
+      content = [img(image), { type: 'text', text: `This is a student's painting. They will upload it to an AI image generator (ChatGPT or Gemini) together with a prompt, to see how a professional would paint the same picture in ${style}.
+Write that prompt. It must:
+- Tell the generator to repaint THE ATTACHED IMAGE, keeping the student's composition, subject, placement and main colors.
+- Describe what is in the picture so the generator keeps it.
+- Add rich, specific ${style} technique: brushwork, light and shadow, color handling, texture, surface and mood.
+${portrait ? "- This is a self-portrait: keep the person's likeness, pose and features recognizable.\n" : ''}${vision ? `- The student's idea was: "${vision}".\n` : ''}- Be family-friendly. Describe techniques instead of naming copyrighted characters or brands.
+- 80 to 160 words, written directly to the image generator.
+Return JSON: {"prompt":"the prompt"}` }];
+    } else if (mode === 'compare') {
+      const mine = str(body.mine, 2000000), ai = str(body.ai, 2000000), style = str(body.style, 60);
+      if (mine.length < 100 || ai.length < 100) return bad(res, 400, 'Both pictures are needed.');
+      maxTokens = 900;
+      content = [{ type: 'text', text: "Picture 1, the student's own painting:" }, img(mine), { type: 'text', text: 'Picture 2, the AI version made from it:' }, img(ai),
+        { type: 'text', text: `Compare them as an encouraging art teacher${style ? `, focusing on ${style} technique` : ''}. Celebrate the student's work, then teach.
+Return JSON: {"summary":"2 warm sentences","differences":["3-4 specific techniques the AI version used differently (brushwork, light, color, texture, detail)"],"tryNext":["2-3 doable things the student can try in their own painting, naming studio tools where useful"]}` }];
     } else {
       return bad(res, 400, 'Unknown request.');
     }
@@ -131,6 +162,7 @@ Return JSON: {"answer":"your answer"}`;
     if (!json) return bad(res, 502, 'Mr. Paul lost his train of thought. Please try again.');
 
     if (mode === 'vision' && Array.isArray(json.styles)) json.styles = json.styles.filter(s => s && STYLES.includes(s.name)).slice(0, 3);
+    if (mode === 'check' && Array.isArray(json.spots)) json.spots = json.spots.slice(0, 6).map(sp => Object.assign(sp, { tool: FIX_TOOLS.includes(sp.tool) ? sp.tool : 'heal', color: /^#[0-9a-fA-F]{6}$/.test(sp.color || '') ? sp.color : null }));
     if (mode === 'lesson' && Array.isArray(json.brushes)) json.brushes = json.brushes.filter(b => BRUSHES.includes(b)).slice(0, 4);
     if (Array.isArray(json.palette)) json.palette = json.palette.filter(c => /^#[0-9a-fA-F]{6}$/.test(c)).slice(0, 6);
     return res.status(200).json(json);
