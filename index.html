@@ -64,7 +64,7 @@ button:disabled{opacity:.5;cursor:default}
 .props input[type=range]{width:100%}
 .props .grp{border-top:1px solid var(--line);padding-top:6px;margin-top:8px}
 .props .grp:first-child{border-top:none;margin-top:0;padding-top:0}
-.props select{width:100%;padding:5px;border-radius:6px;border:1px solid var(--line)}
+.props select{width:calc(100% - 26px);display:inline-block;vertical-align:middle;padding:5px;border-radius:6px;border:1px solid var(--line)}
 .props button{margin:3px 3px 3px 0}
 .layerrow{display:flex;align-items:center;gap:6px;margin:3px 0}
 .layerrow label{margin:0;display:flex;gap:6px;align-items:center;cursor:pointer}
@@ -147,7 +147,7 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
     </div>
     <div class="card">
       <h2>Paint a self-portrait</h2>
-      <p>Use a photo of your face as a faded guide, or turn it into simple lines to paint over. Mr. Paul teaches the classic face proportions.</p>
+      <p>Trace a photo of your face, or turn it into simple lines to paint over. Mr. Paul teaches the classic face proportions.</p>
       <button class="primary" id="portraitStart">Start a self-portrait</button>
       <div class="note" style="margin-top:6px">Your photo stays on your device. It is never uploaded.</div>
     </div>
@@ -179,7 +179,7 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
     <div class="topbar">
       <button class="secondary" id="undoBtn" data-explain="undo">↶ Undo</button>
       <button class="secondary" id="redoBtn" data-explain="redo">↷ Redo</button>
-      <button class="secondary s3 s4" id="guideToggle" data-explain="guideToggle">Guide: on</button>
+      <button class="secondary s3 s4" id="guideToggle" data-explain="guideToggle"><span id="traceLbl">Tracing: on</span></button>
       <button class="secondary" id="newBtn" data-explain="newPainting">New painting</button>
       <span class="styleSel s3 s4"><label for="studioStyle">Style:</label> <select id="studioStyle" data-explain="studioStyle"></select>
         <label class="note" style="display:inline"><input type="checkbox" id="keepPaper" data-explain="keepPaper"> Keep my paper</label></span>
@@ -244,10 +244,15 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
             <button class="primary" data-go="4">Go to Finishing Room →</button>
           </div>
           <div class="grp">
-            <h4>Guide image</h4>
-            <div class="note">A faded picture to paint over. It never shows in your download.</div>
+            <h4>Trace a Picture <span class="note" style="text-transform:none;letter-spacing:0">(optional)</span></h4>
+            <div class="note">Put a photo, selfie or simple outline under your canvas and paint over it. It never shows in your download.</div>
             <label class="btn" style="padding:7px 10px;font-size:13px" data-explain="guideUpload">Upload a photo<input type="file" accept="image/*" id="guideUpload" hidden></label>
             <button class="secondary" id="cameraBtn" data-explain="camera">Take a selfie</button>
+            <div id="guideStrengthBox" class="hide" style="background:#fffaf0;border:1px solid var(--line);border-radius:8px;padding:6px 8px;margin:6px 0">
+              <label style="font-weight:600">How much of the picture shows? <span id="guideAlphaVal"></span></label>
+              <input type="range" id="guideAlpha" min="5" max="100" value="30" data-explain="guideAlpha">
+              <div class="row" style="justify-content:space-between;font-size:11px;color:var(--muted)"><span>A little</span><span>A lot</span></div>
+            </div>
             <div id="photoModes" class="hide">
               <label><input type="radio" name="gmode" value="photo" checked data-explain="gmode"> Show photo</label>
               <label><input type="radio" name="gmode" value="lines" data-explain="gmode"> Show as outline (trace lines)</label>
@@ -257,8 +262,7 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
             <p class="ex">Or get a simple outline. Example: a sitting dog</p>
             <div class="row"><input type="text" id="outlineText" maxlength="80" style="flex:1"></div>
             <button class="secondary" id="outlineBtn" data-explain="outline">Outline from Mr. Paul</button>
-            <label>Guide strength</label><input type="range" id="guideAlpha" min="5" max="70" value="30" data-explain="guideAlpha">
-            <button class="secondary" id="clearGuide" data-explain="clearGuide">Remove guide</button>
+            <button class="secondary" id="clearGuide" data-explain="clearGuide">Remove tracing picture</button>
           </div>
           <div class="grp">
             <h4>Paper</h4>
@@ -381,7 +385,7 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
 </div>
 <footer>
   The Art Studio by NuSpark Publishing · NuSparkLearnWow.com · Best on a tablet or computer. Not recommended for mobile.<br>
-  Mr. Paul's lessons and feedback are AI-generated. Circled spots are approximate. Photos, guide images and downloads stay on your device. Only your painting is sent to Mr. Paul, and only when you tap "Check my painting" or include it in a question.
+  Mr. Paul's lessons and feedback are AI-generated. Circled spots are approximate. Photos, tracing pictures and downloads stay on your device. Only your painting is sent to Mr. Paul, and only when you tap "Check my painting" or include it in a question.
 </footer>
 
 <script>
@@ -442,14 +446,23 @@ const view=$('#view'); let D;
 function setSize(w,h){W=w;H=h;view.width=W;view.height=H;D=view.getContext('2d');
   L.bg=mk(W,H);L.subj=mk(W,H);L.wet=mk(W,H);L.guide=mk(W,H);L.merged=null;makePaper();}
 
-function makePaper(){const p=mk(W,H),x=p.getContext('2d');
-  const base={cold:[251,248,241],smooth:[255,255,255],toned:[217,205,184],canvas:[243,238,226]}[S.paper]||[255,255,255];
-  const amp={cold:26,smooth:4,toned:18,canvas:16}[S.paper]||0;
-  const img=x.createImageData(W,H),d=img.data;
-  for(let y=0;y<H;y++)for(let i=0;i<W;i++){const k=(y*W+i)*4;let v=(grainAt(i,y)-.5)*amp;
-    if(S.paper==='canvas'){v+=(((i%6)<3)!==((y%6)<3)?5:-5)}
-    d[k]=base[0]+v;d[k+1]=base[1]+v;d[k+2]=base[2]+v;d[k+3]=255}
-  x.putImageData(img,0,0);L.paper=p;requestRender();}
+function makePaper(){const p=mk(W,H),x=p.getContext('2d'),t=mk(W,H),tx=t.getContext('2d');
+  const base={cold:[251,248,241],smooth:[255,255,255],toned:[214,198,170],canvas:[240,233,216]}[S.paper]||[255,255,255];
+  const amp={cold:30,smooth:3,toned:20,canvas:14}[S.paper]||0;
+  const img=x.createImageData(W,H),d=img.data,ti=tx.createImageData(W,H),td=ti.data;
+  for(let y=0;y<H;y++)for(let i=0;i<W;i++){const k=(y*W+i)*4,g=grainAt(i,y)-.5;let v=g*amp,tv=0;
+    if(S.paper==='canvas'){const w=Math.sin(i*.55)*Math.cos(y*.55),th=((Math.floor(i/6)+Math.floor(y/6))%2?1:-1);v+=w*10+th*4;tv=34+w*30+th*10+g*16}
+    else if(S.paper==='cold'){tv=Math.max(0,g)*80+g*22}
+    else if(S.paper==='toned'){tv=Math.max(0,g)*34}
+    d[k]=base[0]+v;d[k+1]=base[1]+v;d[k+2]=base[2]+v;d[k+3]=255;
+    const c=clamp(255-tv,150,255);td[k]=td[k+1]=td[k+2]=c;td[k+3]=255}
+  x.putImageData(img,0,0);tx.putImageData(ti,0,0);L.paper=p;L.tex=S.paper==='smooth'?null:t;requestRender();}
+function drawTexture(x){if(!L.tex||S.uploaded)return;x.save();x.globalCompositeOperation='multiply';x.globalAlpha=S.paper==='canvas'?.55:.45;x.drawImage(L.tex,0,0);x.restore()}
+const PAPER_INFO={cold:"<b>Cold-press watercolor paper</b> is bright white with a bumpy surface. The bumps catch watercolor, charcoal and pastel and give that grainy, hand-made look. Best for Watercolor, Charcoal and Pastel.",
+ smooth:"<b>Smooth white</b> paper is clean, flat and bright, with almost no texture. Best for Pop Art, Cartoonish and crisp ink lines.",
+ toned:"<b>Toned tan paper</b> is a warm middle tone, so both dark marks and white highlights show up. Artists love it for Charcoal and Pastel.",
+ canvas:"<b>Canvas</b> is woven fabric, like real oil paintings. You'll see the crisscross weave through your paint. Best for Oil Painting, Renaissance, Baroque and Impressionism."};
+function bgCovered(){if(S.merged)return true;try{const d=ctxOf(L.bg).getImageData(0,0,W,H).data;let n=0,o=0;for(let k=3;k<d.length;k+=4*997){n++;if(d[k]>200)o++}return n&&o/n>.85}catch(e){return false}}
 
 /* ---------- brush engine ---------- */
 function softMask(c,r){const x=c.getContext('2d');x.globalCompositeOperation='destination-in';
@@ -578,6 +591,7 @@ function render(){if(!D)return;D.setTransform(1,0,0,1,0,0);D.globalAlpha=1;D.glo
     if(S.showSubj){const m=subjMatrix();D.save();D.setTransform(m.a,m.b,m.c,m.d,m.e,m.f);D.drawImage(L.subj,0,0);if(S.active==='subj')drawWet();
       if(S.step===3&&(S.tool==='move'||S.active==='subj')){D.strokeStyle='rgba(200,85,61,.7)';D.setLineDash([14/S.t.s,10/S.t.s]);D.lineWidth=3/S.t.s;D.strokeRect(2,2,W-4,H-4)}
       D.restore();}}
+  if(!(S.compare&&S.original))drawTexture(D);
   if(S.hasGuide&&S.guideOn&&S.step<=4){D.globalAlpha=S.guideAlpha;D.drawImage(L.guide,0,0);D.globalAlpha=1}
   if(S.step===4&&S.spots.length){S.spots.forEach((s,i)=>{const x=s.x*W,y=s.y*H,r=Math.max(18,s.r*W);
     D.strokeStyle='#e63946';D.lineWidth=Math.max(3,W/400);D.setLineDash([]);D.beginPath();D.arc(x,y,r,0,Math.PI*2);D.stroke();
@@ -626,7 +640,8 @@ function updStatus(){$('#status').textContent=S.merged?'Painting combined':(!S.l
 function syncUI(){
   $$('.s3,.s4,.s5').forEach(e=>e.classList.toggle('hide',!e.classList.contains('s'+S.step)));
   $('#guideToggle').classList.toggle('hide',!(S.hasGuide&&S.step<=4));
-  $('#guideToggle').textContent='Guide: '+(S.guideOn?'on':'off');
+  $('#traceLbl').textContent='Tracing: '+(S.guideOn?'on':'off');
+  $('#guideStrengthBox').classList.toggle('hide',!S.hasGuide);$('#guideAlphaVal').textContent=Math.round(S.guideAlpha*100)+'%';
   $('#oneLayerGrp').classList.toggle('hide',S.merged||S.layers2);
   $('#oneLayerTools').classList.toggle('hide',S.merged||S.layers2);
   $('#layerGrp').classList.toggle('hide',S.merged||!S.layers2);
@@ -646,7 +661,7 @@ function syncUI(){
 /* ---------- steps ---------- */
 function go(n){n=+n;S.step=n;$$('#steps button').forEach(b=>b.classList.toggle('on',+b.dataset.step===n));
   $('#p1').classList.toggle('on',n===1);$('#p2').classList.toggle('on',n===2);$('#pWork').classList.toggle('on',n>=3);
-  if(n===3&&S.portrait&&!S.portraitIntro){S.portraitIntro=1;if(!S.hasGuide)say('Ready for your self-portrait. Tap <b>Take a selfie</b> or <b>Upload a photo</b> under Guide image on the right.')}
+  if(n===3&&S.portrait&&!S.portraitIntro){S.portraitIntro=1;if(!S.hasGuide)say('Ready for your self-portrait. Tap <b>Take a selfie</b> or <b>Upload a photo</b> under Trace a Picture on the right.')}
   if(n===3&&!S.introPaint){S.introPaint=1;say('Welcome to the studio. Pick a brush on the left and start painting. Each time you try a new button, I\'ll explain what it does. Tap any <b>?</b> to hear it again. Want to paint your subject separately? Tap <b>Add a second layer</b> on the right.')}
   if(n===4&&!S.merged&&!S.layers2&&S.step===4){combineQuiet()}
   if(n===4){if(S.merged&&!S.original)S.original=clone(L.merged);if(!S.introFinish){S.introFinish=1;say('This is the Finishing Room. Tap <b>Check my painting</b> and I will circle spots to fix. For each spot I will tell you exactly how to fix it, and <b>Set it up for me</b> picks the right tool. <b>Restore original</b> always brings back your painting as it was when you walked in.')}}
@@ -664,7 +679,7 @@ async function api(mode,payload){const r=await fetch('/api/coach',{method:'POST'
 function paintingJpeg(max){const c=compositeCanvas(false),k=Math.min(1,(max||900)/Math.max(c.width,c.height));const o=mk(c.width*k,c.height*k);o.getContext('2d').drawImage(c,0,0,o.width,o.height);
   return o.toDataURL('image/jpeg',.85).split(',')[1]}
 function drawMine(x){x.drawImage(L.paper,0,0);
-  if(S.merged)x.drawImage(L.merged,0,0);else{if(S.showBg)x.drawImage(L.bg,0,0);if(S.showSubj){const t=subjMatrix();x.save();x.transform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.restore()}}}
+  if(S.merged)x.drawImage(L.merged,0,0);else{if(S.showBg)x.drawImage(L.bg,0,0);if(S.showSubj){const t=subjMatrix();x.save();x.transform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.restore()}}drawTexture(x)}
 function drawContainOn(x,img,w,h){const k=Math.min(w/img.width,h/img.height),dw=img.width*k,dh=img.height*k;x.drawImage(img,(w-dw)/2,(h-dh)/2,dw,dh)}
 function compositeCanvas(withGuide){const c=mk(W,H),x=c.getContext('2d');drawMine(x);
   if(withGuide&&S.hasGuide){x.globalAlpha=S.guideAlpha;x.drawImage(L.guide,0,0)}return c}
@@ -690,7 +705,7 @@ function styleData(name){return STYLES[name]||S.custom[name]||null}
 function applyPreset(st){S.recommended=(st.brushes||[]).filter(k=>BR[k]);
   const pal=(st.palette||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c));buildPalette(pal.concat(S.visionPalette||[]).slice(0,10));
   if(pal[0]){S.rgb=hexToRgb(pal[0]);$('#color').value=pal[0]}
-  if(!$('#keepPaper').checked&&st.paper&&st.paper!==S.paper&&['cold','smooth','toned','canvas'].includes(st.paper)){S.paper=st.paper;$('#paper').value=st.paper;makePaper()}
+  if(!$('#keepPaper').checked&&st.paper&&st.paper!==S.paper&&['cold','smooth','toned','canvas'].includes(st.paper)){S.paper=st.paper;$('#paper').value=st.paper;makePaper();S.paperNote=st.paper}
   if(S.recommended[0]){S.tool=S.step===4?S.tool:S.recommended[0];S.lastPaintTool=S.recommended.find(k=>!['smudge','blend','eraser'].includes(k))||'oil'}
   buildTools();}
 function exampleBlock(name){const u=exampleURL(name);return u?`<div style="max-width:380px"><img src="${u}" alt="Mr. Paul's example of ${esc(name)}"><div class="note">Mr. Paul's example: the same cottage, tree and path painted in ${esc(name)} style. Original art created with AI for The Art Studio.</div></div>`
@@ -700,7 +715,7 @@ function showLesson(name,st){const box=$('#lesson');box.style.display='block';co
    ${artists.length?`<p><b>Famous artists:</b> ${artists.map(esc).join(', ')}</p>`:''}
    ${st.tech&&st.tech.length?`<b>Techniques to try</b><ul>${st.tech.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
    ${st.tip?`<p><b>Mr. Paul's paint-along tip:</b> ${esc(st.tip)}</p>`:''}</div></div>
-   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes and a ${esc(name)} palette. Its history stays on screen below your canvas while you paint.</div>`;}
+   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes, a ${esc(name)} palette and ${esc($('#paper').selectedOptions[0].text.toLowerCase())} paper. Its history stays on screen below your canvas while you paint.</div>`;}
 function renderHistory(){const box=$('#historyPanel');const name=S.style;
   if(!name){box.innerHTML='<h3>Style History</h3><div class="note">Pick a style from the Style menu above to see its history, famous artists and famous paintings here.</div>';return}
   const h=HISTORY[name]||(S.custom[name]&&S.custom[name].hist)||null;const u=exampleURL(name);
@@ -737,7 +752,8 @@ $('#fillLayer1').onclick=()=>$('#fillLayer').onclick();$('#clearLayer1').onclick
 $('#subjScale').oninput=e=>{S.t.s=e.target.value/100;requestRender()};$('#subjRot').oninput=e=>{S.t.r=+e.target.value;requestRender()};
 $('#subjReset').onclick=()=>{S.t={x:0,y:0,s:1,r:0};$('#subjScale').value=100;$('#subjRot').value=0;requestRender()};
 $('#combineBtn').onclick=combine;$('#combineBtn2').onclick=()=>{combine();if(!S.original)S.original=clone(L.merged)};
-$('#paper').onchange=e=>{S.paper=e.target.value;makePaper()};
+$('#paper').onchange=e=>{S.paper=e.target.value;makePaper();S.explained.paper=1;
+  say('Paper changed. '+PAPER_INFO[S.paper]+(bgCovered()?'<br><span class="note">Your Layer 1 is fully painted, so the paper\'s color is covered, but its texture now shows through your paint.</span>':''))};
 $('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();e.shiftKey?redo():undo()}});
 
@@ -748,7 +764,7 @@ function loadImageFile(file){return new Promise((res,rej)=>{const u=URL.createOb
 let guidePhoto=null;
 function setGuidePhoto(src,isSelfie){guidePhoto=mk(W,H);drawContain(src,guidePhoto);S.hasGuide=true;S.guideOn=true;$('#photoModes').classList.remove('hide');
   const mode=S.portrait?'lines':'photo';$(`input[name=gmode][value=${mode}]`).checked=true;applyGuideMode();syncUI();
-  if(S.portrait&&!S.portraitTipped){S.portraitTipped=1;portraitLesson()}else say(S.portrait?'Your photo is ready. Switch between photo and outline any time.':'Your photo is now a faded guide. Paint right over it, and use <b>Guide: on/off</b> at the top to check your work without it.')}
+  if(S.portrait&&!S.portraitTipped){S.portraitTipped=1;portraitLesson()}else say(S.portrait?'Your photo is ready. Switch between photo and outline any time.':'Your photo is now your tracing picture. Use <b>How much of the picture shows?</b> under the photo buttons to make it fainter or stronger. Paint right over it, and tap <b>Tracing: on/off</b> at the top to check your painting without it.')}
 function applyGuideMode(){if(!guidePhoto)return;const x=L.guide.getContext('2d');x.clearRect(0,0,W,H);
   if($('input[name=gmode]:checked').value==='lines'){x.drawImage(traceLines(guidePhoto,+$('#lineDetail').value),0,0);if(S.guideAlpha<.4){S.guideAlpha=.5;$('#guideAlpha').value=50}}
   else x.drawImage(guidePhoto,0,0);requestRender()}
@@ -786,7 +802,7 @@ function portraitLesson(){say(`<h4>Self-portrait tips from Mr. Paul</h4>Artists 
 <li>The mouth sits about a third of the way down from the nose to the chin.</li>
 <li>The tops of the ears line up near the eyebrows, the bottoms near the bottom of the nose.</li></ul>
 Paint the big shapes first: head, hair, then the shadow side of the face. Save the eyes for last.`)}
-$('#portraitStart').onclick=()=>{S.portrait=true;go(2);say('Great choice. Styles marked <b>great for portraits</b> work especially well. Pick one, then in the studio use <b>Take a selfie</b> or <b>Upload a photo</b> under Guide image. Tip: paint your face on the <b>Subject</b> layer and a simple background on the Background layer.')};
+$('#portraitStart').onclick=()=>{S.portrait=true;go(2);say('Great choice. Styles marked <b>great for portraits</b> work especially well. Pick one, then in the studio use <b>Take a selfie</b> or <b>Upload a photo</b> under Trace a Picture. Tip: paint your face on the <b>Subject</b> layer and a simple background on the Background layer.')};
 $('#outlineBtn').onclick=async()=>{const subj=$('#outlineText').value.trim();if(!subj){say('Type what you want an outline of, like "a sitting dog".');return}
   const btn=$('#outlineBtn');btn.disabled=true;const t=thinking('Mr. Paul is sketching an outline…');
   try{const j=await api('outline',{subject:subj});const paths=(j.paths||[]).filter(d=>typeof d==='string'&&/^[MmLlHhVvCcSsQqTtAaZz0-9\s,.\-eE]+$/.test(d)&&d.length<4000).slice(0,40);
@@ -796,14 +812,14 @@ $('#outlineBtn').onclick=async()=>{const subj=$('#outlineText').value.trim();if(
     const x=L.guide.getContext('2d');x.clearRect(0,0,W,H);x.drawImage(img,0,0,W,H);S.hasGuide=true;S.guideOn=true;
     if(S.guideAlpha<.35){S.guideAlpha=.45;$('#guideAlpha').value=45}syncUI();requestRender();t.remove();say(esc(j.note||'Here is a simple outline to paint over.'))}
   catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
-$('#guideAlpha').oninput=e=>{S.guideAlpha=e.target.value/100;requestRender()};
+$('#guideAlpha').oninput=e=>{S.guideAlpha=e.target.value/100;$('#guideAlphaVal').textContent=e.target.value+'%';requestRender()};
 $('#clearGuide').onclick=()=>{L.guide.getContext('2d').clearRect(0,0,W,H);S.hasGuide=false;syncUI();requestRender()};
 $('#guideToggle').onclick=()=>{S.guideOn=!S.guideOn;syncUI();requestRender()};
 
 /* ---------- upload finished painting ---------- */
 $('#uploadPainting').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const img=await loadImageFile(f);const k=Math.min(1,2400/Math.max(img.width,img.height));const w=Math.round(img.width*k),h=Math.round(img.height*k);
-    resetPainting(w,h);L.merged=mk(w,h);L.merged.getContext('2d').drawImage(img,0,0,w,h);S.mergedAt=clone(L.merged);S.merged=true;S.active='merged';S.undo=[];S.redo=[];S.original=clone(L.merged);S.spots=[];S.hasGuide=false;
+    resetPainting(w,h);S.uploaded=true;L.merged=mk(w,h);L.merged.getContext('2d').drawImage(img,0,0,w,h);S.mergedAt=clone(L.merged);S.merged=true;S.active='merged';S.undo=[];S.redo=[];S.original=clone(L.merged);S.spots=[];S.hasGuide=false;
     go(4);say('Your painting is in the Finishing Room. Tap <b>Check my painting</b> for my notes, or try <b>Remove stray marks</b> and the Adjust sliders.')}catch(err){say(esc(err.message))}};
 
 /* ---------- finishing: check & spots ---------- */
@@ -1053,7 +1069,7 @@ const EXPLAIN={
  'tool:touchup':"<b>Paint</b> uses your last paint brush so you can add touch-ups in the Finishing Room. Pick a color first.",
  undo:"<b>Undo</b> takes back your last action, one step at a time. It remembers your last 20 actions.",
  redo:"<b>Redo</b> brings back something you just undid.",
- guideToggle:"<b>Guide on/off</b> hides or shows your faded guide image so you can check how your painting looks on its own. The guide never appears in downloads.",
+ guideToggle:"<b>Tracing on/off</b> hides or shows the picture you're tracing, so you can check how your painting looks on its own. The tracing picture never appears in downloads.",
  newPainting:"<b>New painting</b> clears everything and gives you a fresh canvas. Your style stays picked. Tap it twice to confirm.",
  studioStyle:"<b>Style menu</b> switches styles without leaving your canvas. Your painting stays exactly as it is, and only the palette, recommended brushes and tips change. Switch back to your real style before tapping Check my painting.",
  keepPaper:"<b>Keep my paper</b> stops the paper from changing when you switch styles, so you can compare styles on the same background.",
@@ -1074,13 +1090,13 @@ const EXPLAIN={
  subjReset:"<b>Reset position</b> puts your subject back where you painted it, at its original size.",
  combine:"<b>Combine layers</b> joins your subject and background into one painting so you can blend the edges together. You can always tap Separate layers to split them again.",
  separate:"<b>Separate layers</b> splits your painting back into Layer 1 and Layer 2. Anything you painted after combining stays on the background.",
- guideUpload:"<b>Upload a photo</b> puts a picture under your canvas as a faded guide to paint over. It stays on your device and never shows in your download.",
- camera:"<b>Take a selfie</b> uses your camera to snap a photo for a self-portrait guide. The photo stays on your device.",
- gmode:"<b>Show photo / Show as outline</b> switches your guide between the faded photo and simple trace lines, like a coloring page.",
+ guideUpload:"<b>Upload a photo</b> puts a picture under your canvas for you to trace and paint over. It stays on your device and never shows in your download.",
+ camera:"<b>Take a selfie</b> uses your camera to snap a photo to trace for a self-portrait. The photo stays on your device.",
+ gmode:"<b>Show photo / Show as outline</b> switches your tracing picture between the faded photo and simple trace lines, like a coloring page.",
  lineDetail:"<b>Outline detail</b> adds or removes lines in the trace outline. Fewer lines are easier for beginners.",
  outline:"<b>Outline from Mr. Paul</b> draws simple outline shapes of what you type, to paint over like a coloring page.",
- guideAlpha:"<b>Guide strength</b> makes the guide image lighter or darker on your canvas.",
- clearGuide:"<b>Remove guide</b> takes the guide image away completely.",
+ guideAlpha:"<b>How much of the picture shows?</b> Slide left to show just a little, a faint ghost so your own paint stands out. Slide right to show a lot, close to the original photo, which helps you match shapes and colors. Beginners usually like about one third.",
+ clearGuide:"<b>Remove tracing picture</b> takes the picture away completely. You can always add a new one.",
  paper:"<b>Paper</b> changes the surface under your painting. Watercolor paper has bumpy texture, toned paper is tan, and canvas has a woven look.",
  check:"<b>Check my painting</b> sends your painting to Mr. Paul. He tells you what's working, circles spots to fix, and gives step-by-step instructions for each one.",
  clearSpots:"<b>Clear circles</b> removes Mr. Paul's red circles from your painting.",
@@ -1104,7 +1120,7 @@ const EXPLAIN={
  dlShare:"<b>Download share size</b> saves a smaller picture sized for Facebook and Instagram."
 };
 S.explained={};
-function explain(key,force){const t=EXPLAIN[key];if(!t)return;if(!force){if(!$('#explainOn').checked||S.explained[key])return}S.explained[key]=1;say(t)}
+function explain(key,force){const t=key==='paper'?'<b>Paper</b> changes the surface under your painting, and its texture shows through your paint. Right now: '+PAPER_INFO[S.paper]:EXPLAIN[key];if(!t)return;if(!force){if(!$('#explainOn').checked||S.explained[key])return}S.explained[key]=1;say(t)}
 function addQ(el,key){if(!el||el.querySelector(':scope > .q'))return;const q=document.createElement('span');q.className='q';q.textContent='?';q.title='What does this do?';
   q.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();explain(key,true)});el.appendChild(q)}
 function attachQs(root){(root||document).querySelectorAll('[data-explain]').forEach(el=>{const key=el.dataset.explain;
@@ -1115,7 +1131,7 @@ function attachQs(root){(root||document).querySelectorAll('[data-explain]').forE
 document.addEventListener('click',e=>{const el=e.target.closest('[data-explain]');if(el&&!e.target.classList.contains('q'))explain(el.dataset.explain)},true);
 document.addEventListener('change',e=>{const el=e.target.closest('[data-explain]');if(el)explain(el.dataset.explain)},true);
 /* ---------- layers, separate, new painting, pick color, studio style menu ---------- */
-function resetPainting(w,h){setSize(w||1600,h||1200);Object.assign(S,{layers2:false,merged:false,active:'bg',t:{x:0,y:0,s:1,r:0},pre:null,mergedAt:null,undo:[],redo:[],original:null,spots:[],ai:null,hasGuide:false,compare:false,adjBase:null});
+function resetPainting(w,h){setSize(w||1600,h||1200);Object.assign(S,{uploaded:false,layers2:false,merged:false,active:'bg',t:{x:0,y:0,s:1,r:0},pre:null,mergedAt:null,undo:[],redo:[],original:null,spots:[],ai:null,hasGuide:false,compare:false,adjBase:null});
   guidePhoto=null;$('#photoModes').classList.add('hide');$('#proBox').classList.add('hide');$('#subjScale').value=100;$('#subjRot').value=0;const m=$('input[name=finalV][value=mine]');if(m)m.checked=true}
 $('#addLayerBtn').onclick=()=>{S.layers2=true;setActive('subj');syncUI();
   say("Layer 2 is ready, and you're painting on it now. Everything you painted before is on <b>Layer 1 (Background)</b>. Switch layers with the two big buttons above the canvas, and use <b>Move subject</b> to drag Layer 2 around.")};
