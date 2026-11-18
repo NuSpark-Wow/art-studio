@@ -153,6 +153,35 @@ Return JSON: {"prompt":"the prompt"}` }];
       content = [{ type: 'text', text: "Picture 1, the student's own painting:" }, img(mine), { type: 'text', text: 'Picture 2, the AI version made from it:' }, img(ai),
         { type: 'text', text: `Compare them as an encouraging art teacher${style ? `, focusing on ${style} technique` : ''}. Celebrate the student's work, then teach.
 Return JSON: {"summary":"2 warm sentences","differences":["3-4 specific techniques the AI version used differently (brushwork, light, color, texture, detail)"],"tryNext":["2-3 doable things the student can try in their own painting, naming studio tools where useful"]}` }];
+    } else if (mode === 'stylize') {
+      const image = str(body.image, 2000000), style = str(body.style, 60);
+      if (image.length < 100) return bad(res, 400, 'No photo received.');
+      if (!style) return bad(res, 400, 'Pick a style.');
+      maxTokens = 900;
+      content = [img(image), { type: 'text', text: `A user of the Photo Styling Room wants an AI image generator (ChatGPT or Gemini) to turn the attached photo into an original painting in this style: ${style}.
+Write the prompt they will paste in with the photo. It must:
+- Tell the generator to repaint THE ATTACHED PHOTO as a painting, keeping the same subject, composition, layout and pose.
+- Briefly describe what is in the photo so the generator keeps it.
+- Add rich, specific ${style} technique: brushwork or marks, light and shadow, color handling, texture, surface and mood.
+- If there are people, keep their likeness, pose and features recognizable and respectful.
+- Be family-friendly. Describe techniques instead of naming copyrighted characters or brands. Do not add text or a signature.
+- 80 to 160 words, written directly to the image generator.
+If the photo is inappropriate for a family audience, return {"prompt":"","note":"a kind one-sentence reason"}.
+Return JSON: {"prompt":"the prompt"}` }];
+    } else if (mode === 'edit') {
+      const image = str(body.image, 2000000), change = str(body.change, 200), style = str(body.style, 60);
+      if (image.length < 100) return bad(res, 400, 'No picture received.');
+      if (change.length < 3) return bad(res, 400, 'Say what to change.');
+      maxTokens = 700;
+      content = [img(image), { type: 'text', text: `A user wants an AI image generator (ChatGPT or Gemini) to make one change to the attached painting: "${change}".${style ? ` The painting's style is ${style}.` : ''}
+Write the prompt they will paste in with the picture. It must:
+- Tell the generator to edit THE ATTACHED IMAGE and make only this change: ${change}.
+- Say to keep everything else exactly the same: composition, subjects, colors, lighting and painting style.
+- Say to paint any new element in the same painting technique, brushwork, light and color palette so it blends in naturally, and describe where it should go if the user implied a place.
+- Be family-friendly. No text or signature.
+- 50 to 120 words, written directly to the image generator.
+If the change is inappropriate for a family audience, return {"prompt":"","note":"a kind one-sentence reason and a suggestion"}.
+Return JSON: {"prompt":"the prompt"}` }];
     } else {
       return bad(res, 400, 'Unknown request.');
     }
