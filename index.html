@@ -107,6 +107,17 @@ aside.coach{background:#fff;border:1px solid var(--line);border-radius:12px;disp
 .proSteps{margin:6px 0 6px 18px;padding:0;font-size:13px}.proSteps li{margin:4px 0}
 #proPrompt{font-size:12px;margin-top:6px}
 @media (max-width:1100px){.history .cols{grid-template-columns:1fr}}
+nav.steps button.bonusTab{border-color:var(--accent2);margin-left:auto}nav.steps button.bonusTab .n{background:var(--accent)}
+.psGrid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start}
+.psView{background:#ddd5c4;border-radius:10px;min-height:280px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.psView img{max-width:100%;max-height:60vh;display:block}
+.psVersions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.psVersions button{border:2px solid var(--line);border-radius:6px;padding:0;background:#fff;cursor:pointer;width:96px;font-size:11px;overflow:hidden}
+.psVersions button.on{border-color:var(--accent)}.psVersions img{width:100%;height:54px;object-fit:cover;display:block}
+.psStep{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px;background:#fff}
+.psStep h4{margin:0 0 6px;color:var(--ink);font-size:15px}.psStep h4 .n{display:inline-block;width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;background:var(--accent2);color:#fff;font-size:12px;margin-right:4px}
+.psStep select{width:calc(100% - 26px);display:inline-block;vertical-align:middle;padding:7px;border-radius:6px;border:1px solid var(--line)}
+@media (max-width:900px){.psGrid{grid-template-columns:1fr}}
 footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
 @media (max-width:1100px){.layout{grid-template-columns:1fr}aside.coach{position:static;max-height:420px}}
 @media (max-width:820px){.work{grid-template-columns:1fr}.tools{flex-direction:row;flex-wrap:wrap}}
@@ -128,6 +139,7 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
   <button data-step="3"><span class="n">3</span>Paint</button>
   <button data-step="4"><span class="n">4</span>Finishing Room</button>
   <button data-step="5"><span class="n">5</span>Download</button>
+  <button data-step="6" class="bonusTab"><span class="n">★</span>Photo Styling Room</button>
 </nav>
 
 <div class="layout">
@@ -171,6 +183,59 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
         <div class="row"><input type="text" id="customStyle" maxlength="60" style="flex:1"><button class="primary" id="customBtn" style="margin-top:0">Teach me</button></div>
       </div>
       <button class="primary" data-go="3">Start painting →</button>
+    </div>
+  </section>
+
+  <!-- BONUS: PHOTO STYLING ROOM -->
+  <section class="panel" id="p6">
+    <div class="card">
+      <h2>★ Photo Styling Room</h2>
+      <p>Turn a photo into a painting in any style, then ask the AI to change it: add a small dog, make the sun come out, anything you imagine. When you love it, paint over it, paint on it, or finish and download.</p>
+      <div class="psGrid">
+        <div>
+          <div class="psView" id="psView"><div class="note" style="padding:40px;text-align:center">Your photo will appear here.</div></div>
+          <div class="psVersions" id="psVersions"></div>
+        </div>
+        <div>
+          <div class="psStep">
+            <h4><span class="n">1</span> Upload a photo</h4>
+            <label class="btn" data-explain="psUpload">Upload a photo<input type="file" accept="image/*" id="psUpload" hidden></label>
+            <div class="note">Your photo is sent to Mr. Paul only when you tap <b>Write my styling prompt</b> or <b>Write my change prompt</b>, so he can describe it. It is not saved. It goes to ChatGPT or Gemini only if you upload it there yourself.</div>
+          </div>
+          <div class="psStep">
+            <h4><span class="n">2</span> Pick a painting style</h4>
+            <select id="psStyle" data-explain="psStyle"></select>
+            <p class="ex">Or type your own style. Example: Japanese woodblock</p>
+            <input type="text" id="psCustom" maxlength="60">
+            <button class="primary" id="psStylizeBtn" data-explain="psStylize">Write my styling prompt</button>
+          </div>
+          <div class="psStep hide" id="psChangeStep">
+            <h4><span class="n">3</span> Ask AI to change it <span class="note" style="text-transform:none;letter-spacing:0">(optional, repeat anytime)</span></h4>
+            <p class="ex">Example: add a small dog by the path, or make the sun come out</p>
+            <input type="text" id="psChange" maxlength="200">
+            <button class="primary" id="psEditBtn" data-explain="psEdit">Write my change prompt</button>
+          </div>
+          <div class="psStep hide" id="psSteps">
+            <h4 id="psStepsTitle">Your prompt is ready</h4>
+            <ol class="proSteps">
+              <li><button class="secondary" id="psDl" data-explain="psDl">Download picture for AI</button></li>
+              <li><button class="secondary" id="psCopy" data-explain="psCopy">Copy prompt</button></li>
+              <li>Open ChatGPT or Gemini. Upload the picture and paste the prompt.</li>
+              <li>Download the picture it makes.</li>
+              <li><label class="btn" style="padding:6px 10px;font-size:13px;margin-top:2px" data-explain="psResult">Upload the new picture<input type="file" accept="image/*" id="psResult" hidden></label></li>
+            </ol>
+            <textarea id="psPrompt" rows="6" readonly></textarea>
+            <div class="note"><b>Kids:</b> ask a parent to help with this step. ChatGPT and Gemini have their own age rules.<br><b>Photos of people:</b> uploading to another AI company means your picture leaves The Art Studio.</div>
+          </div>
+          <div class="psStep hide" id="psDoors">
+            <h4><span class="n">4</span> What's next?</h4>
+            <button class="secondary" id="psTrace" data-explain="psTrace">Paint over it</button>
+            <button class="secondary" id="psPaintOn" data-explain="psPaintOn">Paint on it</button>
+            <button class="primary" id="psFinish" data-explain="psFinish">Finish &amp; download</button>
+            <div class="note">Paint over it: use it as your tracing picture. Paint on it: make it your canvas and add your own brushstrokes. Finish &amp; download: go to the Finishing Room with it.</div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -385,7 +450,7 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
 </div>
 <footer>
   The Art Studio by NuSpark Publishing · NuSparkLearnWow.com · Best on a tablet or computer. Not recommended for mobile.<br>
-  Mr. Paul's lessons and feedback are AI-generated. Circled spots are approximate. Photos, tracing pictures and downloads stay on your device. Only your painting is sent to Mr. Paul, and only when you tap "Check my painting" or include it in a question.
+  Mr. Paul's lessons and feedback are AI-generated. Circled spots are approximate. Photos, tracing pictures and downloads stay on your device. Your painting, or your photo in the Photo Styling Room, is sent to Mr. Paul only when you ask for his help, and it is not saved.
 </footer>
 
 <script>
@@ -536,6 +601,7 @@ view.addEventListener('pointerdown',e=>{
   const tool=currentTool(),p=toCanvas(e);view.setPointerCapture(e.pointerId);
   if(tool==='move'){if(S.merged)return;pushUndo();stroke={move:true,sx:p.x,sy:p.y,tx:S.t.x,ty:S.t.y};return}
   if(S.picking){pickAt(p);return}
+  if(['watercolor','charcoal','pastel','pencil','ink','oil','marker','dots','facet','touchup'].includes(S.tool))S.handPainted=true;
   const spot=hitSpot(p);if(S.step===4&&spot){flashSpot(spot);return}
   pushUndo();const lp=toLayer(p),br=BR[tool];
   const sc=(!S.merged&&S.active==='subj')?S.t.s:1;
@@ -660,12 +726,13 @@ function syncUI(){
 
 /* ---------- steps ---------- */
 function go(n){n=+n;S.step=n;$$('#steps button').forEach(b=>b.classList.toggle('on',+b.dataset.step===n));
-  $('#p1').classList.toggle('on',n===1);$('#p2').classList.toggle('on',n===2);$('#pWork').classList.toggle('on',n>=3);
+  $('#p1').classList.toggle('on',n===1);$('#p2').classList.toggle('on',n===2);$('#pWork').classList.toggle('on',n>=3&&n<=5);$('#p6').classList.toggle('on',n===6);
   if(n===3&&S.portrait&&!S.portraitIntro){S.portraitIntro=1;if(!S.hasGuide)say('Ready for your self-portrait. Tap <b>Take a selfie</b> or <b>Upload a photo</b> under Trace a Picture on the right.')}
   if(n===3&&!S.introPaint){S.introPaint=1;say('Welcome to the studio. Pick a brush on the left and start painting. Each time you try a new button, I\'ll explain what it does. Tap any <b>?</b> to hear it again. Want to paint your subject separately? Tap <b>Add a second layer</b> on the right.')}
   if(n===4&&!S.merged&&!S.layers2&&S.step===4){combineQuiet()}
   if(n===4){if(S.merged&&!S.original)S.original=clone(L.merged);if(!S.introFinish){S.introFinish=1;say('This is the Finishing Room. Tap <b>Check my painting</b> and I will circle spots to fix. For each spot I will tell you exactly how to fix it, and <b>Set it up for me</b> picks the right tool. <b>Restore original</b> always brings back your painting as it was when you walked in.')}}
   if(n===5){if(!S.merged&&!hasPaint())say('Paint something first, or upload a painting in step 1.');}
+  if(n===6&&!S.introPS){S.introPS=1;say('Welcome to the <b>Photo Styling Room</b>. Upload a photo, pick a style, and I\'ll write the instructions to turn it into a painting with ChatGPT or Gemini. Then you can ask for changes, like adding a small dog or making the sun come out.')}
   if(n!==4)S.compare=false;syncUI();requestRender();window.scrollTo({top:0,behavior:'smooth'});}
 $$('#steps button').forEach(b=>b.onclick=()=>go(b.dataset.step));
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
@@ -913,7 +980,7 @@ function finalCanvas(){const v=finalChoice();if(v==='ai')return S.ai;if(v!=='bot
   const a=compositeCanvas(false),b=S.ai,hh=1200,wa=a.width*hh/a.height,wb=b.width*hh/b.height,gap=40,lab=80,c=mk(wa+wb+gap*3,hh+gap*2+lab),x=c.getContext('2d');
   x.fillStyle='#f4efe4';x.fillRect(0,0,c.width,c.height);x.drawImage(a,gap,gap,wa,hh);x.drawImage(b,gap*2+wa,gap,wb,hh);
   x.fillStyle='#1f3b4d';x.font='bold 44px Georgia, serif';x.textAlign='center';x.textBaseline='middle';x.fillText('My painting',gap+wa/2,gap+hh+lab/2);x.fillText('AI version',gap*2+wa+wb/2,gap+hh+lab/2);return c}
-function creditLine(){const v=finalChoice();return v==='ai'?'Created with The Art Studio · NuSparkLearnWow.com':v==='both'?'My painting vs. AI version · The Art Studio · NuSparkLearnWow.com':'Painted in The Art Studio · NuSparkLearnWow.com'}
+function creditLine(){const v=finalChoice();if(v==='mine'&&S.aiMade&&!S.handPainted)return 'Created with The Art Studio · NuSparkLearnWow.com';return v==='ai'?'Created with The Art Studio · NuSparkLearnWow.com':v==='both'?'My painting vs. AI version · The Art Studio · NuSparkLearnWow.com':'Painted in The Art Studio · NuSparkLearnWow.com'}
 const vSuffix=()=>({mine:'',ai:'-ai-version',both:'-side-by-side'})[finalChoice()];
 $('#dlFull').onclick=()=>{saveBlob(finalCanvas(),'image/png',1,baseName()+vSuffix()+'-full-size.png');say('Full size download started.')};
 $('#dlShare').onclick=()=>{const portrait=$('input[name=shape]:checked').value==='portrait',ow=1080,oh=portrait?1350:1080;
@@ -1131,7 +1198,7 @@ function attachQs(root){(root||document).querySelectorAll('[data-explain]').forE
 document.addEventListener('click',e=>{const el=e.target.closest('[data-explain]');if(el&&!e.target.classList.contains('q'))explain(el.dataset.explain)},true);
 document.addEventListener('change',e=>{const el=e.target.closest('[data-explain]');if(el)explain(el.dataset.explain)},true);
 /* ---------- layers, separate, new painting, pick color, studio style menu ---------- */
-function resetPainting(w,h){setSize(w||1600,h||1200);Object.assign(S,{uploaded:false,layers2:false,merged:false,active:'bg',t:{x:0,y:0,s:1,r:0},pre:null,mergedAt:null,undo:[],redo:[],original:null,spots:[],ai:null,hasGuide:false,compare:false,adjBase:null});
+function resetPainting(w,h){setSize(w||1600,h||1200);Object.assign(S,{uploaded:false,aiMade:false,handPainted:false,layers2:false,merged:false,active:'bg',t:{x:0,y:0,s:1,r:0},pre:null,mergedAt:null,undo:[],redo:[],original:null,spots:[],ai:null,hasGuide:false,compare:false,adjBase:null});
   guidePhoto=null;$('#photoModes').classList.add('hide');$('#proBox').classList.add('hide');$('#subjScale').value=100;$('#subjRot').value=0;const m=$('input[name=finalV][value=mine]');if(m)m.checked=true}
 $('#addLayerBtn').onclick=()=>{S.layers2=true;setActive('subj');syncUI();
   say("Layer 2 is ready, and you're painting on it now. Everything you painted before is on <b>Layer 1 (Background)</b>. Switch layers with the two big buttons above the canvas, and use <b>Move subject</b> to drag Layer 2 around.")};
@@ -1150,8 +1217,61 @@ function pickAt(p){const c=mk(1,1),x=c.getContext('2d');x.translate(-Math.floor(
 $('#pickBtn').onclick=()=>{S.picking=!S.picking;$('#pickBtn').textContent=S.picking?'Tap your painting…':'Pick color';view.style.cursor=S.picking?'copy':'crosshair'};
 $('#studioStyle').onchange=e=>{if(e.target.value)pickStyle(e.target.value,true)};
 
+/* ---------- BONUS: Photo Styling Room ---------- */
+const PS={versions:[],cur:-1,mode:'stylize',style:''};
+Object.assign(EXPLAIN,{
+ psUpload:"<b>Upload a photo</b> picks the picture you want to turn into a painting: a pet, a place, a family photo. Mr. Paul sees it only when you ask him to write a prompt, and it goes to ChatGPT or Gemini only if you upload it there yourself.",
+ psStyle:"<b>Pick a painting style</b> chooses how your photo will be repainted, from Renaissance to Pop Art. Or type your own style in the box below.",
+ psStylize:"<b>Write my styling prompt</b> has Mr. Paul look at your photo and write detailed instructions for ChatGPT or Gemini to repaint it in your style, keeping the same subject and layout.",
+ psEdit:"<b>Write my change prompt</b> has Mr. Paul write instructions to change just one thing, like adding a small dog or making the sun come out, while keeping everything else and the painting style the same.",
+ psDl:"<b>Download picture for AI</b> saves the picture you're working on, so you can upload it to ChatGPT or Gemini with the prompt.",
+ psCopy:"<b>Copy prompt</b> copies Mr. Paul's instructions so you can paste them into ChatGPT or Gemini.",
+ psResult:"<b>Upload the new picture</b> brings the painting from ChatGPT or Gemini back here. It's saved as a new version, and you can always click an earlier version below the picture.",
+ psTrace:"<b>Paint over it</b> takes the current version to the studio as your tracing picture, so you can paint your own version over it.",
+ psPaintOn:"<b>Paint on it</b> makes the current version your canvas (Layer 1) in the studio, so you can add your own brushstrokes and finishing touches. It replaces what's on your current canvas.",
+ psFinish:"<b>Finish &amp; download</b> takes the current version to the Finishing Room for Mr. Paul's check, then on to download and share."});
+function psBuildStyles(){$('#psStyle').innerHTML='<option value="">Pick a style…</option>'+Object.keys(STYLES).map(n=>`<option>${esc(n)}</option>`).join('')}
+function psCur(){return PS.versions[PS.cur]}
+function psRender(){const v=psCur();$('#psView').innerHTML=v?`<img src="${v.url}" alt="${esc(v.label)}">`:'<div class="note" style="padding:40px;text-align:center">Your photo will appear here.</div>';
+  $('#psVersions').innerHTML=PS.versions.map((x,i)=>`<button class="${i===PS.cur?'on':''}" data-i="${i}" title="${esc(x.label)}"><img src="${x.url}" alt=""><span>${esc(x.label)}</span></button>`).join('');
+  $$('#psVersions button').forEach(b=>b.onclick=()=>{PS.cur=+b.dataset.i;psRender()});
+  const hasArt=PS.versions.some(x=>x.ai);$('#psChangeStep').classList.toggle('hide',!hasArt);$('#psDoors').classList.toggle('hide',!PS.versions.length)}
+function psAdd(canvas,label,ai){PS.versions.push({canvas,label,ai,url:canvas.toDataURL('image/jpeg',.9)});PS.cur=PS.versions.length-1;psRender()}
+function psJpeg(c,max){const k=Math.min(1,(max||1000)/Math.max(c.width,c.height)),o=mk(c.width*k,c.height*k);o.getContext('2d').drawImage(c,0,0,o.width,o.height);return o.toDataURL('image/jpeg',.85).split(',')[1]}
+async function psLoad(file){const img=await loadImageFile(file);const k=Math.min(1,1600/Math.max(img.width,img.height));const c=mk(img.width*k,img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c}
+$('#psUpload').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const c=await psLoad(f);PS.versions=[];psAdd(c,'Original photo',false);$('#psSteps').classList.add('hide');
+    say('Photo loaded. Now pick a painting style and tap <b>Write my styling prompt</b>.')}catch(err){say(esc(err.message))}};
+function psStyleName(){return $('#psCustom').value.trim()||$('#psStyle').value}
+function psShowSteps(title,prompt){$('#psStepsTitle').textContent=title;$('#psPrompt').value=prompt;$('#psSteps').classList.remove('hide');$('#psSteps').scrollIntoView({behavior:'smooth',block:'nearest'})}
+$('#psStylizeBtn').onclick=async()=>{const v=psCur();if(!v){say('Upload a photo first.');return}const st=psStyleName();if(!st){say('Pick a painting style first, or type your own.');return}
+  const btn=$('#psStylizeBtn');btn.disabled=true;const t=thinking('Mr. Paul is studying your photo…');
+  try{const j=await api('stylize',{image:psJpeg(v.canvas),style:st});t.remove();if(!j.prompt){say(esc(j.note||'Mr. Paul could not write a prompt for that photo. Try another one.'));return}
+    PS.mode='stylize';PS.style=st;psShowSteps('Turn your photo into '+st,j.prompt);
+    say(`Your styling prompt is ready. Follow the 5 numbered steps: download the picture, copy the prompt, paste both into ChatGPT or Gemini, then upload the painting it makes.`)}
+  catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+$('#psEditBtn').onclick=async()=>{const v=psCur();if(!v){say('Upload a photo first.');return}const ch=$('#psChange').value.trim();if(ch.length<3){say('Type what you want to change, like "add a small dog by the path."');return}
+  const btn=$('#psEditBtn');btn.disabled=true;const t=thinking('Mr. Paul is writing your change prompt…');
+  try{const j=await api('edit',{image:psJpeg(v.canvas),change:ch,style:PS.style||psStyleName()});t.remove();if(!j.prompt){say(esc(j.note||'Mr. Paul could not write that change. Try describing it differently.'));return}
+    PS.mode='edit';psShowSteps('Change: '+ch,j.prompt);say('Your change prompt is ready. Use the same 5 steps with the picture shown on the left.')}
+  catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+$('#psDl').onclick=()=>{const v=psCur();if(!v)return;saveBlob(v.canvas,'image/jpeg',.92,'photo-styling-'+slug(v.label)+'.jpg');say('Picture saved. Next, tap <b>Copy prompt</b>.')};
+$('#psCopy').onclick=async()=>{const ta=$('#psPrompt');try{await navigator.clipboard.writeText(ta.value)}catch(e){ta.select();document.execCommand('copy')}say('Prompt copied. Open ChatGPT or Gemini, upload the picture, and paste the prompt.')};
+$('#psResult').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const c=await psLoad(f);const n=PS.versions.filter(x=>x.ai).length+1;psAdd(c,(PS.mode==='edit'?'Change ':'Painting ')+n,true);$('#psSteps').classList.add('hide');$('#psChange').value='';
+    say('Saved as a new version. Want to change something? Use <b>Ask AI to change it</b>. Happy with it? Pick <b>Paint over it</b>, <b>Paint on it</b> or <b>Finish &amp; download</b>.')}catch(err){say(esc(err.message))}};
+function psFitTo(canvas){const k=Math.min(1,2400/Math.max(canvas.width,canvas.height));return{w:Math.round(canvas.width*k),h:Math.round(canvas.height*k)}}
+$('#psTrace').onclick=()=>{const v=psCur();if(!v)return;go(3);setGuidePhoto(v.canvas);say('Your styled picture is now your tracing picture. Use <b>How much of the picture shows?</b> to adjust it, then paint over it.')};
+let psArm=0;$('#psPaintOn').onclick=()=>{const v=psCur();if(!v)return;const b=$('#psPaintOn');
+  if(!psArm){psArm=1;b.textContent='Tap again: replaces your canvas';setTimeout(()=>{psArm=0;b.textContent='Paint on it'},3000);return}
+  psArm=0;b.textContent='Paint on it';const {w,h}=psFitTo(v.canvas);resetPainting(w,h);S.uploaded=true;S.aiMade=!!v.ai;L.bg.getContext('2d').drawImage(v.canvas,0,0,w,h);go(3);
+  say('Your styled picture is now your canvas on Layer 1. Add your own brushstrokes, or tap <b>Add a second layer</b> to paint new things on top.')};
+$('#psFinish').onclick=()=>{const v=psCur();if(!v)return;const {w,h}=psFitTo(v.canvas);resetPainting(w,h);S.uploaded=true;S.aiMade=!!v.ai;
+  L.merged=mk(w,h);L.merged.getContext('2d').drawImage(v.canvas,0,0,w,h);S.mergedAt=clone(L.merged);S.merged=true;S.active='merged';S.original=clone(L.merged);go(4);
+  say('Your picture is in the Finishing Room. Tap <b>Check my painting</b> for Mr. Paul\'s notes, or go straight to Download.')};
+
 /* ---------- start ---------- */
-setSize(1600,1200);setFace(faceIdx);buildStyleGrid();buildPalette([]);paintBanner();buildStudioStyleMenu();renderHistory();syncUI();attachQs();render();
+setSize(1600,1200);setFace(faceIdx);buildStyleGrid();buildPalette([]);paintBanner();buildStudioStyleMenu();renderHistory();psBuildStyles();syncUI();attachQs();render();
 say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to paint in step 1, or jump to step 2 and pick a style. I'll teach you how each style works and set up your brushes. Already have a painting from another AI tool? Upload it in step 1 for a final cleanup.");
 </script>
 </body>
