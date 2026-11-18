@@ -53,7 +53,7 @@ button:disabled{opacity:.5;cursor:default}
 .tools{display:flex;flex-direction:column;gap:5px}
 .tools button{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 6px;font-size:13px;cursor:pointer;text-align:left;position:relative}
 .tools button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.tools button .rec{position:absolute;right:4px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--accent2)}
+.tools button .rec{position:absolute;right:26px;top:50%;margin-top:-4px;width:8px;height:8px;border-radius:50%;background:var(--accent2)}
 .tools h4,.props h4{margin:8px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
 .canvasWrap{background:#ddd5c4;border-radius:10px;padding:10px;display:flex;justify-content:center;align-items:center;min-height:300px}
 #view{display:block;max-width:100%;max-height:calc(100vh - 230px);background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.25);touch-action:none;cursor:crosshair}
@@ -85,6 +85,28 @@ aside.coach{background:#fff;border:1px solid var(--line);border-radius:12px;disp
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
 .msg .spin{border-color:var(--ink);border-top-color:transparent}
 @keyframes sp{to{transform:rotate(360deg)}}
+.explainSw{font-size:12px;display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap}
+.layerBar,.compareBar{display:flex;gap:8px;align-items:center;margin:0 0 8px 130px;flex-wrap:wrap}
+.layerBtn{border:2px solid var(--ink2);background:#fff;color:var(--ink);border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:15px}
+.layerBtn.on{background:var(--ink);color:#fff}
+.compareBar input{flex:1;max-width:420px}
+.styleSel{font-size:13px;display:inline-flex;gap:6px;align-items:center;margin-left:6px}
+.styleSel select{padding:6px;border-radius:6px;border:1px solid var(--line);max-width:190px}
+.q{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#e6eef3;color:var(--ink2);font-size:11px;font-weight:700;margin-left:5px;cursor:help;vertical-align:middle;border:none;padding:0;line-height:1}
+.tools button .q{position:absolute;right:5px;top:50%;margin-top:-8px}
+.history{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-top:14px}
+.history h3{font-family:Georgia,serif;color:var(--ink);margin:0 0 6px}
+.history .cols{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:18px}
+.history ul{margin:4px 0 0 18px;padding:0}.history li{margin-bottom:4px}
+.history a{color:var(--accent)}
+.example{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.example img{width:300px;max-width:100%;border-radius:8px;border:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.spot{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px;margin:6px 0}
+.spot.flash{outline:3px solid #e63946}
+.spot ol{margin:4px 0 4px 18px;padding:0}
+.proSteps{margin:6px 0 6px 18px;padding:0;font-size:13px}.proSteps li{margin:4px 0}
+#proPrompt{font-size:12px;margin-top:6px}
+@media (max-width:1100px){.history .cols{grid-template-columns:1fr}}
 footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
 @media (max-width:1100px){.layout{grid-template-columns:1fr}aside.coach{position:static;max-height:420px}}
 @media (max-width:820px){.work{grid-template-columns:1fr}.tools{flex-direction:row;flex-wrap:wrap}}
@@ -155,67 +177,92 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
   <!-- STEPS 3-5: WORK AREA -->
   <section class="panel" id="pWork">
     <div class="topbar">
-      <button class="secondary" id="undoBtn" title="Undo">↶ Undo</button>
-      <button class="secondary" id="redoBtn" title="Redo">↷ Redo</button>
-      <button class="secondary s3 s4" id="guideToggle">Guide: on</button>
+      <button class="secondary" id="undoBtn" data-explain="undo">↶ Undo</button>
+      <button class="secondary" id="redoBtn" data-explain="redo">↷ Redo</button>
+      <button class="secondary s3 s4" id="guideToggle" data-explain="guideToggle">Guide: on</button>
+      <button class="secondary" id="newBtn" data-explain="newPainting">New painting</button>
+      <span class="styleSel s3 s4"><label for="studioStyle">Style:</label> <select id="studioStyle" data-explain="studioStyle"></select>
+        <label class="note" style="display:inline"><input type="checkbox" id="keepPaper" data-explain="keepPaper"> Keep my paper</label></span>
       <span class="status" id="status"></span>
+    </div>
+    <div class="layerBar s3 hide" id="layerBar">
+      <button class="layerBtn" data-layer="bg" data-explain="layer1">Layer 1: Background</button>
+      <button class="layerBtn" data-layer="subj" data-explain="layer2">Layer 2: Subject</button>
+      <span class="note">Tap a layer to paint on it.</span>
+    </div>
+    <div class="compareBar s5 hide" id="compareBar">
+      <span>Yours</span><input type="range" id="wipe" min="0" max="100" value="50" data-explain="wipe"><span>AI version</span>
     </div>
     <div class="work">
       <div class="tools" id="tools"></div>
       <div class="canvasWrap"><canvas id="view"></canvas></div>
       <div class="props">
-        <!-- PAINT PROPS -->
-        <div class="s3">
+        <!-- BRUSH PROPS (paint + finishing) -->
+        <div class="s3 s4">
           <div class="grp">
             <h4>Color</h4>
-            <div class="row"><input type="color" id="color" value="#2e5670"><span class="note">or tap a palette color</span></div>
+            <div class="row"><input type="color" id="color" value="#2e5670" data-explain="color"><button class="secondary" id="pickBtn" data-explain="pick">Pick color</button></div>
             <div class="swatches" id="palette"></div>
-            <label>Brush size <span id="sizeVal"></span></label><input type="range" id="size" min="2" max="140" value="30">
-            <label>Strength <span id="opVal"></span></label><input type="range" id="opacity" min="5" max="100" value="80">
-            <label>Steady hand <span class="note">(smooths shaky lines)</span></label><input type="range" id="stab" min="0" max="90" value="30">
-            <label class="wetOnly"><input type="checkbox" id="wetPaper"> Wet paper (softer, blooming edges)</label>
+            <label>Brush size <span id="sizeVal"></span></label><input type="range" id="size" min="2" max="140" value="30" data-explain="size">
+            <label>Strength <span id="opVal"></span></label><input type="range" id="opacity" min="5" max="100" value="80" data-explain="opacity">
+            <label>Steady hand <span class="note">(smooths shaky lines)</span></label><input type="range" id="stab" min="0" max="90" value="30" data-explain="stab">
+            <label class="wetOnly"><input type="checkbox" id="wetPaper" data-explain="wetPaper"> Wet paper (softer, blooming edges)</label>
           </div>
-          <div class="grp" id="layerGrp">
+        </div>
+        <!-- PAINT PROPS -->
+        <div class="s3">
+          <div class="grp" id="oneLayerGrp">
             <h4>Layers</h4>
-            <div class="layerrow"><label><input type="radio" name="layer" value="subj"> Subject (front)</label><label><input type="checkbox" id="showSubj" checked>show</label></div>
-            <div class="layerrow"><label><input type="radio" name="layer" value="bg" checked> Background</label><label><input type="checkbox" id="showBg" checked>show</label></div>
-            <button class="secondary" id="fillLayer">Fill layer with color</button>
-            <button class="secondary" id="clearLayer">Clear layer</button>
+            <div class="note">You're painting on one layer. Want more control?</div>
+            <button class="primary" id="addLayerBtn" data-explain="addLayer">Add a second layer</button>
+            <div class="note">A second layer lets you paint your main subject separately. You can move it, resize it and fix mistakes without smudging your background.</div>
+          </div>
+          <div class="grp hide" id="layerGrp">
+            <h4>Layers</h4>
+            <div class="layerrow"><label><input type="checkbox" id="showSubj" checked data-explain="show"> Show Layer 2 (Subject)</label></div>
+            <div class="layerrow"><label><input type="checkbox" id="showBg" checked data-explain="show"> Show Layer 1 (Background)</label></div>
+            <button class="secondary" id="fillLayer" data-explain="fillLayer">Fill layer with color</button>
+            <button class="secondary" id="clearLayer" data-explain="clearLayer">Clear layer</button>
             <div id="subjCtl">
               <h4>Place the subject</h4>
-              <label>Size</label><input type="range" id="subjScale" min="20" max="250" value="100">
-              <label>Turn</label><input type="range" id="subjRot" min="-180" max="180" value="0">
-              <button class="secondary" id="subjReset">Reset position</button>
+              <label>Size</label><input type="range" id="subjScale" min="20" max="250" value="100" data-explain="subjScale">
+              <label>Turn</label><input type="range" id="subjRot" min="-180" max="180" value="0" data-explain="subjRot">
+              <button class="secondary" id="subjReset" data-explain="subjReset">Reset position</button>
               <div class="note">Use the Move tool to drag the subject.</div>
             </div>
-            <button class="primary" id="combineBtn">Combine layers →</button>
-            <div class="note">Combining joins subject and background into one painting so you can blend them together.</div>
+            <button class="primary" id="combineBtn" data-explain="combine">Combine layers →</button>
+            <div class="note">Combine when you're happy with both layers. Then blend the edges together.</div>
+          </div>
+          <div class="grp hide" id="oneLayerTools">
+            <button class="secondary" id="fillLayer1" data-explain="fillLayer">Fill with color</button>
+            <button class="secondary" id="clearLayer1" data-explain="clearLayer">Clear canvas</button>
           </div>
           <div class="grp mergedNote hide">
             <h4>Painting</h4>
-            <div class="note">Layers are combined. Keep blending and painting, or use Undo to separate them again.</div>
+            <div class="note">Your layers are combined into one painting.</div>
+            <button class="secondary sepBtn" data-explain="separate">Separate layers</button>
             <button class="primary" data-go="4">Go to Finishing Room →</button>
           </div>
           <div class="grp">
             <h4>Guide image</h4>
             <div class="note">A faded picture to paint over. It never shows in your download.</div>
-            <label class="btn" style="padding:7px 10px;font-size:13px">Upload a photo<input type="file" accept="image/*" id="guideUpload" hidden></label>
-            <button class="secondary" id="cameraBtn">Take a selfie</button>
+            <label class="btn" style="padding:7px 10px;font-size:13px" data-explain="guideUpload">Upload a photo<input type="file" accept="image/*" id="guideUpload" hidden></label>
+            <button class="secondary" id="cameraBtn" data-explain="camera">Take a selfie</button>
             <div id="photoModes" class="hide">
-              <label><input type="radio" name="gmode" value="photo" checked> Show photo</label>
-              <label><input type="radio" name="gmode" value="lines"> Show as outline (trace lines)</label>
-              <label>Outline detail</label><input type="range" id="lineDetail" min="1" max="10" value="5">
+              <label><input type="radio" name="gmode" value="photo" checked data-explain="gmode"> Show photo</label>
+              <label><input type="radio" name="gmode" value="lines" data-explain="gmode"> Show as outline (trace lines)</label>
+              <label>Outline detail</label><input type="range" id="lineDetail" min="1" max="10" value="5" data-explain="lineDetail">
             </div>
             <div class="note">Photos stay on your device and are never uploaded.</div>
             <p class="ex">Or get a simple outline. Example: a sitting dog</p>
             <div class="row"><input type="text" id="outlineText" maxlength="80" style="flex:1"></div>
-            <button class="secondary" id="outlineBtn">Outline from Mr. Paul</button>
-            <label>Guide strength</label><input type="range" id="guideAlpha" min="5" max="70" value="30">
-            <button class="secondary" id="clearGuide">Remove guide</button>
+            <button class="secondary" id="outlineBtn" data-explain="outline">Outline from Mr. Paul</button>
+            <label>Guide strength</label><input type="range" id="guideAlpha" min="5" max="70" value="30" data-explain="guideAlpha">
+            <button class="secondary" id="clearGuide" data-explain="clearGuide">Remove guide</button>
           </div>
           <div class="grp">
             <h4>Paper</h4>
-            <select id="paper">
+            <select id="paper" data-explain="paper">
               <option value="cold">Cold-press watercolor paper</option>
               <option value="smooth">Smooth white</option>
               <option value="toned">Toned tan paper</option>
@@ -228,40 +275,63 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
           <div class="grp needMerge hide">
             <h4>One step first</h4>
             <div class="note">Combine your layers so the Finishing Room can work on the whole painting.</div>
-            <button class="primary" id="combineBtn2">Combine layers now</button>
+            <button class="primary" id="combineBtn2" data-explain="combine">Combine layers now</button>
           </div>
           <div class="grp">
             <h4>Mr. Paul's check</h4>
-            <button class="primary" id="checkBtn">Check my painting</button>
-            <div class="note">Mr. Paul circles spots to fix. Locations are approximate.</div>
-            <button class="secondary hide" id="clearSpots">Clear circles</button>
+            <button class="primary" id="checkBtn" data-explain="check">Check my painting</button>
+            <div class="note">Mr. Paul circles spots and tells you exactly how to fix each one. Locations are approximate.</div>
+            <button class="secondary hide" id="clearSpots" data-explain="clearSpots">Clear circles</button>
           </div>
           <div class="grp">
             <h4>Quick fixes</h4>
             <label>Clean-up strength <span id="sensVal">3</span></label>
-            <input type="range" id="sens" min="1" max="10" value="3">
+            <input type="range" id="sens" min="1" max="10" value="3" data-explain="sens">
             <div class="note">Low keeps texture like charcoal grain and Pop Art dots. High removes bigger marks.</div>
-            <button class="secondary" id="strayBtn">Remove stray marks</button>
-            <button class="secondary" id="softenBtn">Soften slightly</button>
+            <button class="secondary" id="strayBtn" data-explain="stray">Remove stray marks</button>
+            <button class="secondary" id="softenBtn" data-explain="soften">Soften slightly</button>
           </div>
           <div class="grp">
             <h4>Adjust</h4>
-            <label>Brightness</label><input type="range" class="adj" id="aBright" min="-60" max="60" value="0">
-            <label>Contrast</label><input type="range" class="adj" id="aContrast" min="-60" max="60" value="0">
-            <label>Color richness</label><input type="range" class="adj" id="aSat" min="-100" max="100" value="0">
-            <label>Warm / cool</label><input type="range" class="adj" id="aWarm" min="-50" max="50" value="0">
-            <button class="secondary" id="adjDone">Keep changes</button>
-            <button class="secondary" id="adjCancel">Cancel</button>
+            <label>Brightness</label><input type="range" class="adj" id="aBright" min="-60" max="60" value="0" data-explain="adjust">
+            <label>Contrast</label><input type="range" class="adj" id="aContrast" min="-60" max="60" value="0" data-explain="adjust">
+            <label>Color richness</label><input type="range" class="adj" id="aSat" min="-100" max="100" value="0" data-explain="adjust">
+            <label>Warm / cool</label><input type="range" class="adj" id="aWarm" min="-50" max="50" value="0" data-explain="adjust">
+            <button class="secondary" id="adjDone" data-explain="adjDone">Keep changes</button>
+            <button class="secondary" id="adjCancel" data-explain="adjCancel">Cancel</button>
           </div>
           <div class="grp">
             <h4>Safety switches</h4>
-            <button class="secondary" id="compareBtn">Hold to see before</button>
-            <button class="secondary" id="restoreBtn">Restore original</button>
+            <button class="secondary" id="compareBtn" data-explain="compareBefore">Hold to see before</button>
+            <button class="secondary" id="restoreBtn" data-explain="restore">Restore original</button>
+            <button class="secondary sepBtn" data-explain="separate">Separate layers</button>
           </div>
           <button class="primary" data-go="5">Go to Download →</button>
         </div>
         <!-- DOWNLOAD PROPS -->
         <div class="s5">
+          <div class="grp">
+            <h4>See it like a pro</h4>
+            <div class="note">See how an advanced AI image tool would paint your picture with more style detail, then compare it with yours.</div>
+            <button class="primary" id="proBtn" data-explain="pro">Build my pro prompt</button>
+            <div id="proBox" class="hide">
+              <ol class="proSteps">
+                <li><button class="secondary" id="proDl" data-explain="proDl">Download for AI</button> to save your painting.</li>
+                <li><button class="secondary" id="proCopy" data-explain="proCopy">Copy prompt</button></li>
+                <li>Open ChatGPT or Gemini. Upload your painting and paste the prompt.</li>
+                <li>Download the picture it makes.</li>
+                <li><label class="btn" style="padding:6px 10px;font-size:13px;margin-top:2px" data-explain="aiUpload">Upload the AI version<input type="file" accept="image/*" id="aiUpload" hidden></label></li>
+              </ol>
+              <textarea id="proPrompt" rows="6" readonly></textarea>
+              <div class="note"><b>Kids:</b> ask a parent to help with this step. ChatGPT and Gemini have their own age rules.<br><b>Self-portraits:</b> uploading to another AI company means your picture leaves The Art Studio.</div>
+            </div>
+          </div>
+          <div class="grp hide" id="finalGrp">
+            <h4>Choose your final version</h4>
+            <label><input type="radio" name="finalV" value="mine" checked data-explain="finalV"> My painting</label>
+            <label><input type="radio" name="finalV" value="ai" data-explain="finalV"> AI version</label>
+            <label><input type="radio" name="finalV" value="both" data-explain="finalV"> Side by side</label>
+          </div>
           <div class="grp">
             <h4>Sign your painting</h4>
             <p class="ex">Example: Sunset Run</p>
@@ -271,24 +341,25 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
           <div class="grp">
             <h4>Full size</h4>
             <div class="note">High quality PNG, best for printing and keeping.</div>
-            <button class="primary" id="dlFull">Download full size</button>
+            <button class="primary" id="dlFull" data-explain="dlFull">Download full size</button>
           </div>
           <div class="grp">
             <h4>Share size</h4>
             <div class="note">Smaller file sized for Facebook and Instagram.</div>
-            <label><input type="radio" name="shape" value="square" checked> Square (1080 × 1080)</label>
-            <label><input type="radio" name="shape" value="portrait"> Portrait (1080 × 1350)</label>
-            <label><input type="checkbox" id="credit" checked> Add a small "Painted in The Art Studio" credit</label>
-            <button class="primary" id="dlShare">Download share size</button>
+            <label><input type="radio" name="shape" value="square" checked data-explain="shape"> Square (1080 × 1080)</label>
+            <label><input type="radio" name="shape" value="portrait" data-explain="shape"> Portrait (1080 × 1350)</label>
+            <label><input type="checkbox" id="credit" checked data-explain="credit"> Add a small Art Studio credit</label>
+            <button class="primary" id="dlShare" data-explain="dlShare">Download share size</button>
           </div>
         </div>
       </div>
     </div>
+    <div class="history s3 s4 s5" id="historyPanel"></div>
   </section>
 </main>
 
 <aside class="coach">
-  <div class="coachHead"><div class="face" id="face"></div><div><b>Mr. Paul</b><small>Your art teacher</small></div></div>
+  <div class="coachHead"><div class="face" id="face"></div><div style="flex:1"><b>Mr. Paul</b><small>Your art teacher</small></div><label class="explainSw" title="Mr. Paul explains each button the first time you use it"><input type="checkbox" id="explainOn" checked> Explain as I go</label></div>
   <div class="msgs" id="msgs"></div>
   <div class="ask">
     <div class="note" style="margin-bottom:4px">Ask Mr. Paul anything about art or your painting</div>
@@ -365,7 +436,7 @@ const STYLES={
 let W=1600,H=1200;
 const S={step:1,tool:'watercolor',rgb:[46,86,112],size:30,op:.8,stab:.3,wetPaper:false,active:'bg',merged:false,
   showBg:true,showSubj:true,t:{x:0,y:0,s:1,r:0},guideOn:true,guideAlpha:.3,hasGuide:false,paper:'cold',
-  style:null,vision:'',undo:[],redo:[],original:null,compare:false,spots:[],adjBase:null,lastPaintTool:'oil',recommended:[]};
+  style:null,vision:'',layers2:false,pre:null,mergedAt:null,ai:null,picking:false,wipe:.5,custom:{},undo:[],redo:[],original:null,compare:false,spots:[],adjBase:null,lastPaintTool:'oil',recommended:[]};
 const L={bg:null,subj:null,merged:null,wet:null,guide:null,paper:null};
 const view=$('#view'); let D;
 function setSize(w,h){W=w;H=h;view.width=W;view.height=H;D=view.getContext('2d');
@@ -446,11 +517,13 @@ function currentTool(){return S.tool==='touchup'?S.lastPaintTool:S.tool}
 
 let stroke=null;
 view.addEventListener('pointerdown',e=>{
+  if(S.step===5&&S.ai){wipeDrag=true;view.setPointerCapture(e.pointerId);setWipe(toCanvas(e).x/W);return}
   if(S.step<3||S.step>4||e.button>0)return;
   if(S.step===4&&!S.merged){say('Combine your layers first. Use the button on the right.');return}
   const tool=currentTool(),p=toCanvas(e);view.setPointerCapture(e.pointerId);
   if(tool==='move'){if(S.merged)return;pushUndo();stroke={move:true,sx:p.x,sy:p.y,tx:S.t.x,ty:S.t.y};return}
-  const spot=hitSpot(p);if(S.step===4&&spot){healSpot(spot);return}
+  if(S.picking){pickAt(p);return}
+  const spot=hitSpot(p);if(S.step===4&&spot){flashSpot(spot);return}
   pushUndo();const lp=toLayer(p),br=BR[tool];
   const sc=(!S.merged&&S.active==='subj')?S.t.s:1;
   stroke={tool,br,lx:lp.x,ly:lp.y,sx:lp.x,sy:lp.y,px:lp.x,py:lp.y,acc:0,speed:0,n:0,
@@ -461,13 +534,15 @@ view.addEventListener('pointerdown',e=>{
   stroke.ctx=c;doStamp(lp.x,lp.y,1,0);requestRender();
 });
 view.addEventListener('pointermove',e=>{
+  if(wipeDrag){setWipe(toCanvas(e).x/W);return}
   if(!stroke)return;const p=toCanvas(e);
   if(stroke.move){S.t.x=stroke.tx+(p.x-stroke.sx);S.t.y=stroke.ty+(p.y-stroke.sy);requestRender();return}
   const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
   for(const ev of (evs.length?evs:[e])){const lp=toLayer(toCanvas(ev));if(ev.pointerType==='pen')stroke.b.pr=ev.pressure||.5;strokeTo(lp.x,lp.y)}
   requestRender();
 });
-function endStroke(){if(!stroke)return;if(stroke.br&&stroke.br.wet)commitWet();stroke=null;requestRender();}
+let wipeDrag=false;
+function endStroke(){wipeDrag=false;if(!stroke)return;if(stroke.br&&stroke.br.wet)commitWet();stroke=null;requestRender();}
 view.addEventListener('pointerup',endStroke);view.addEventListener('pointercancel',endStroke);
 
 function strokeTo(x,y){const s=stroke,k=1-S.stab*.9;s.sx+=(x-s.sx)*k;s.sy+=(y-s.sy)*k;
@@ -495,6 +570,8 @@ let raf=0;function requestRender(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;
 function drawWet(){if(stroke&&stroke.br&&stroke.br.wet){D.save();D.globalCompositeOperation='multiply';D.globalAlpha=S.op*.42;D.drawImage(L.wet,0,0);D.restore()}}
 function render(){if(!D)return;D.setTransform(1,0,0,1,0,0);D.globalAlpha=1;D.globalCompositeOperation='source-over';
   D.clearRect(0,0,W,H);D.drawImage(L.paper,0,0);
+  if(S.step===5&&S.ai){drawMine(D);const sx=Math.round(S.wipe*W);D.save();D.beginPath();D.rect(sx,0,W-sx,H);D.clip();D.fillStyle='#f4efe4';D.fillRect(0,0,W,H);drawContainOn(D,S.ai,W,H);D.restore();
+    D.fillStyle='#fff';D.fillRect(sx-3,0,6,H);D.fillStyle='rgba(31,59,77,.85)';D.font=`bold ${Math.max(16,W/60)}px sans-serif`;D.textBaseline='top';D.textAlign='left';if(sx>W*.12)D.fillText('Yours',14,12);D.textAlign='right';if(sx<W*.88)D.fillText('AI version',W-14,12);return}
   if(S.compare&&S.original){D.drawImage(S.original,0,0)}
   else if(S.merged){D.drawImage(L.merged,0,0);drawWet()}
   else{if(S.showBg){D.drawImage(L.bg,0,0);if(S.active==='bg')drawWet()}
@@ -512,7 +589,7 @@ function render(){if(!D)return;D.setTransform(1,0,0,1,0,0);D.globalAlpha=1;D.glo
 function snap(){return S.merged?{merged:true,m:clone(L.merged)}:{merged:false,bg:clone(L.bg),subj:clone(L.subj),t:{...S.t}}}
 function restoreSnap(s){if(s.merged){L.merged=clone(s.m);S.merged=true;S.active='merged'}
   else{L.bg.getContext('2d').clearRect(0,0,W,H);L.bg.getContext('2d').drawImage(s.bg,0,0);L.subj.getContext('2d').clearRect(0,0,W,H);L.subj.getContext('2d').drawImage(s.subj,0,0);
-    S.t={...s.t};const wasMerged=S.merged;S.merged=false;if(S.active==='merged')S.active='bg';if(wasMerged)S.original=null;}
+    S.t={...s.t};const wasMerged=S.merged;S.merged=false;S.pre=null;S.mergedAt=null;if(S.active==='merged')S.active='bg';if(wasMerged)S.original=null;}
   syncUI();requestRender();}
 function pushUndo(){S.undo.push(snap());if(S.undo.length>20)S.undo.shift();S.redo=[];syncUndo()}
 function undo(){if(!S.undo.length)return;S.redo.push(snap());restoreSnap(S.undo.pop());syncUndo()}
@@ -520,50 +597,59 @@ function redo(){if(!S.redo.length)return;S.undo.push(snap());restoreSnap(S.redo.
 function syncUndo(){$('#undoBtn').disabled=!S.undo.length;$('#redoBtn').disabled=!S.redo.length}
 
 /* ---------- combine ---------- */
-function combine(){if(S.merged)return;pushUndo();const m=mk(W,H),x=m.getContext('2d');
+function combineQuiet(){if(S.merged)return;doCombine(false)}
+function combine(){if(S.merged)return;pushUndo();doCombine(true)}
+function doCombine(talk){S.pre={bg:clone(L.bg),subj:clone(L.subj),t:{...S.t},layers2:S.layers2};const m=mk(W,H),x=m.getContext('2d');
   if(S.showBg)x.drawImage(L.bg,0,0);
   if(S.showSubj){const t=subjMatrix();x.setTransform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.setTransform(1,0,0,1,0,0)}
-  L.merged=m;S.merged=true;S.active='merged';S.original=null;if(S.tool==='move')setTool('blend');syncUI();requestRender();
-  say('Layers combined. Use the <b>Blend</b> and <b>Smudge</b> tools around the edges of your subject so it melts into the scene instead of looking pasted on.');}
+  L.merged=m;S.mergedAt=clone(m);S.merged=true;S.active='merged';S.original=null;if(S.tool==='move')setTool('blend');syncUI();requestRender();
+  if(talk)say('Layers combined. Use the <b>Blend</b> and <b>Smudge</b> tools around the edges of your subject so it melts into the scene instead of looking pasted on. Changed your mind? Tap <b>Separate layers</b>.');}
 
 /* ---------- UI: tools ---------- */
 function buildTools(){const box=$('#tools');box.innerHTML='';
+  if(S.step===5){box.innerHTML='<div class="note">Your painting is ready. Use the options on the right to compare, sign and download it.</div>';return}
   const list=S.step===4?FINISH_TOOLS:PAINT_TOOLS;
   const h=document.createElement('h4');h.textContent=S.step===4?'Touch-up tools':'Brushes';box.appendChild(h);
-  list.forEach(k=>{if(k==='move'&&S.merged)return;const b=document.createElement('button');b.dataset.tool=k;
+  list.forEach(k=>{if(k==='move'&&(S.merged||!S.layers2))return;const b=document.createElement('button');b.dataset.tool=k;b.dataset.explain='tool:'+k;
     b.innerHTML=(k==='touchup'?'Paint ('+esc(BR[S.lastPaintTool].name)+')':esc(BR[k].name))+(S.recommended.includes(k)?'<span class="rec" title="Recommended for this style"></span>':'');
-    if(k==='move'&&!S.merged){const hr=document.createElement('h4');hr.textContent='Arrange';box.appendChild(hr)}
+    if(k==='move'){const hr=document.createElement('h4');hr.textContent='Arrange';box.appendChild(hr)}
     b.onclick=()=>setTool(k);box.appendChild(b)});
   if(S.recommended.length&&S.step===3){const n=document.createElement('div');n.className='note';n.innerHTML='<span style="color:var(--accent2)">●</span> recommended for your style';box.appendChild(n)}
-  markTool();}
+  attachQs(box);markTool();}
 function setTool(k){S.tool=k;if(PAINT_TOOLS.includes(k)&&!['smudge','blend','eraser','move'].includes(k))S.lastPaintTool=k;
   if(k==='move'&&!S.merged){setActive('subj')}
   markTool();$$('.wetOnly').forEach(e=>e.classList.toggle('hide',k!=='watercolor'));view.style.cursor=k==='move'?'move':'crosshair';requestRender();}
 function markTool(){$$('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.tool===S.tool))}
-function setActive(v){S.active=v;const r=$(`input[name=layer][value=${v}]`);if(r)r.checked=true;requestRender()}
+function setActive(v){S.active=v;$$('.layerBtn').forEach(b=>b.classList.toggle('on',b.dataset.layer===v));if(document.getElementById('status'))updStatus();requestRender()}
+function updStatus(){$('#status').textContent=S.merged?'Painting combined':(!S.layers2?'One layer':(S.active==='subj'?'Painting on: Layer 2 (Subject)':'Painting on: Layer 1 (Background)'))}
 
 function syncUI(){
-  $$('.s3').forEach(e=>e.classList.toggle('hide',S.step!==3));
-  $$('.s4').forEach(e=>e.classList.toggle('hide',S.step!==4));
-  $$('.s5').forEach(e=>e.classList.toggle('hide',S.step!==5));
+  $$('.s3,.s4,.s5').forEach(e=>e.classList.toggle('hide',!e.classList.contains('s'+S.step)));
   $('#guideToggle').classList.toggle('hide',!(S.hasGuide&&S.step<=4));
   $('#guideToggle').textContent='Guide: '+(S.guideOn?'on':'off');
-  $('#layerGrp').classList.toggle('hide',S.merged);
+  $('#oneLayerGrp').classList.toggle('hide',S.merged||S.layers2);
+  $('#oneLayerTools').classList.toggle('hide',S.merged||S.layers2);
+  $('#layerGrp').classList.toggle('hide',S.merged||!S.layers2);
+  $('#layerBar').classList.toggle('hide',S.step!==3||S.merged||!S.layers2);
   $$('.mergedNote').forEach(e=>e.classList.toggle('hide',!S.merged));
   $$('.needMerge').forEach(e=>e.classList.toggle('hide',S.merged));
+  $$('.sepBtn').forEach(e=>e.classList.toggle('hide',!(S.merged&&S.pre&&S.pre.layers2)));
+  $('#compareBar').classList.toggle('hide',S.step!==5||!S.ai);
+  $('#finalGrp').classList.toggle('hide',!S.ai);
+  if(!S.layers2&&!S.merged)S.active='bg';
   if(S.step===4&&!FINISH_TOOLS.includes(S.tool))S.tool='heal';
-  if(S.step===3&&!PAINT_TOOLS.includes(S.tool))S.tool=S.lastPaintTool;
-  buildTools();setTool(S.tool);syncUndo();
-  $('#status').textContent=S.merged?'Painting combined':(S.active==='subj'?'Painting on: Subject layer':'Painting on: Background layer');
+  if(S.step===3&&(!PAINT_TOOLS.includes(S.tool)||(S.tool==='move'&&!S.layers2)))S.tool=S.lastPaintTool;
+  buildTools();setTool(S.tool);syncUndo();setActive(S.active);
   $('#clearSpots').classList.toggle('hide',!S.spots.length);
 }
 
 /* ---------- steps ---------- */
 function go(n){n=+n;S.step=n;$$('#steps button').forEach(b=>b.classList.toggle('on',+b.dataset.step===n));
   $('#p1').classList.toggle('on',n===1);$('#p2').classList.toggle('on',n===2);$('#pWork').classList.toggle('on',n>=3);
-  if(n===3&&S.portrait&&!S.portraitIntro){S.portraitIntro=1;setActive('subj');if(!S.hasGuide)say('Ready for your self-portrait. Tap <b>Take a selfie</b> or <b>Upload a photo</b> under Guide image on the right.')}
-  if(n===3&&!S.introPaint){S.introPaint=1;say('Welcome to the studio. Start with the <b>Background</b> layer (the setting), then switch to the <b>Subject</b> layer for your main subject. When both look good, tap <b>Combine layers</b>.')}
-  if(n===4){if(S.merged&&!S.original)S.original=clone(L.merged);if(!S.introFinish){S.introFinish=1;say('This is the Finishing Room. Tap <b>Check my painting</b> and I will circle spots to fix. Tap a circle on the painting to heal it. <b>Restore original</b> always brings back your painting as it was when you walked in.')}}
+  if(n===3&&S.portrait&&!S.portraitIntro){S.portraitIntro=1;if(!S.hasGuide)say('Ready for your self-portrait. Tap <b>Take a selfie</b> or <b>Upload a photo</b> under Guide image on the right.')}
+  if(n===3&&!S.introPaint){S.introPaint=1;say('Welcome to the studio. Pick a brush on the left and start painting. Each time you try a new button, I\'ll explain what it does. Tap any <b>?</b> to hear it again. Want to paint your subject separately? Tap <b>Add a second layer</b> on the right.')}
+  if(n===4&&!S.merged&&!S.layers2&&S.step===4){combineQuiet()}
+  if(n===4){if(S.merged&&!S.original)S.original=clone(L.merged);if(!S.introFinish){S.introFinish=1;say('This is the Finishing Room. Tap <b>Check my painting</b> and I will circle spots to fix. For each spot I will tell you exactly how to fix it, and <b>Set it up for me</b> picks the right tool. <b>Restore original</b> always brings back your painting as it was when you walked in.')}}
   if(n===5){if(!S.merged&&!hasPaint())say('Paint something first, or upload a painting in step 1.');}
   if(n!==4)S.compare=false;syncUI();requestRender();window.scrollTo({top:0,behavior:'smooth'});}
 $$('#steps button').forEach(b=>b.onclick=()=>go(b.dataset.step));
@@ -577,8 +663,10 @@ async function api(mode,payload){const r=await fetch('/api/coach',{method:'POST'
   let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.error)throw new Error(j.error||'Mr. Paul is busy right now. Please try again in a moment.');return j}
 function paintingJpeg(max){const c=compositeCanvas(false),k=Math.min(1,(max||900)/Math.max(c.width,c.height));const o=mk(c.width*k,c.height*k);o.getContext('2d').drawImage(c,0,0,o.width,o.height);
   return o.toDataURL('image/jpeg',.85).split(',')[1]}
-function compositeCanvas(withGuide){const c=mk(W,H),x=c.getContext('2d');x.drawImage(L.paper,0,0);
-  if(S.merged)x.drawImage(L.merged,0,0);else{if(S.showBg)x.drawImage(L.bg,0,0);if(S.showSubj){const t=subjMatrix();x.setTransform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.setTransform(1,0,0,1,0,0)}}
+function drawMine(x){x.drawImage(L.paper,0,0);
+  if(S.merged)x.drawImage(L.merged,0,0);else{if(S.showBg)x.drawImage(L.bg,0,0);if(S.showSubj){const t=subjMatrix();x.save();x.transform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.restore()}}}
+function drawContainOn(x,img,w,h){const k=Math.min(w/img.width,h/img.height),dw=img.width*k,dh=img.height*k;x.drawImage(img,(w-dw)/2,(h-dh)/2,dw,dh)}
+function compositeCanvas(withGuide){const c=mk(W,H),x=c.getContext('2d');drawMine(x);
   if(withGuide&&S.hasGuide){x.globalAlpha=S.guideAlpha;x.drawImage(L.guide,0,0)}return c}
 
 /* ---------- step 1: vision ---------- */
@@ -598,24 +686,39 @@ $('#visionBtn').onclick=async()=>{const v=$('#visionText').value.trim();if(v.len
 /* ---------- step 2: styles ---------- */
 function buildStyleGrid(){const g=$('#styleGrid');g.innerHTML='';Object.keys(STYLES).forEach(n=>{const b=document.createElement('button');b.className='style';b.dataset.style=n;
   b.innerHTML=`<b>${esc(n)}</b><small>${esc(STYLES[n].era)}</small>${PORTRAIT_STYLES.includes(n)?'<br><span class="pt">great for portraits</span>':''}`;b.onclick=()=>pickStyle(n);g.appendChild(b)})}
+function styleData(name){return STYLES[name]||S.custom[name]||null}
 function applyPreset(st){S.recommended=(st.brushes||[]).filter(k=>BR[k]);
   const pal=(st.palette||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c));buildPalette(pal.concat(S.visionPalette||[]).slice(0,10));
   if(pal[0]){S.rgb=hexToRgb(pal[0]);$('#color').value=pal[0]}
-  if(st.paper&&st.paper!==S.paper&&['cold','smooth','toned','canvas'].includes(st.paper)){S.paper=st.paper;$('#paper').value=st.paper;makePaper()}
-  if(S.recommended[0]){S.tool=S.recommended[0];S.lastPaintTool=S.recommended.find(k=>!['smudge','blend','eraser'].includes(k))||'oil'}
+  if(!$('#keepPaper').checked&&st.paper&&st.paper!==S.paper&&['cold','smooth','toned','canvas'].includes(st.paper)){S.paper=st.paper;$('#paper').value=st.paper;makePaper()}
+  if(S.recommended[0]){S.tool=S.step===4?S.tool:S.recommended[0];S.lastPaintTool=S.recommended.find(k=>!['smudge','blend','eraser'].includes(k))||'oil'}
   buildTools();}
-function showLesson(name,st){const box=$('#lesson');box.style.display='block';
-  box.innerHTML=`<h3>${esc(name)}</h3><div class="note">${esc(st.era||'')}</div><p>${esc(st.about||'')}</p>
-   ${st.artists&&st.artists.length?`<p><b>Famous artists:</b> ${st.artists.map(esc).join(', ')}</p>`:''}
+function exampleBlock(name){const u=exampleURL(name);return u?`<div><img src="${u}" alt="Mr. Paul's example of ${esc(name)}"><div class="note">Mr. Paul's example: the same house, tree and sky in ${esc(name)} style (original art).</div></div>`
+  :`<div class="note" style="max-width:300px">Custom styles don't have an example picture. Read Mr. Paul's description, then open the famous works below to see real examples.</div>`}
+function showLesson(name,st){const box=$('#lesson');box.style.display='block';const artists=st.artists||(HISTORY[name]?HISTORY[name].artists.map(a=>a[0]):[]);
+  box.innerHTML=`<h3>${esc(name)}</h3><div class="note">${esc(st.era||'')}</div><div class="example">${exampleBlock(name)}<div style="flex:1;min-width:240px"><p>${esc(st.about||'')}</p>
+   ${artists.length?`<p><b>Famous artists:</b> ${artists.map(esc).join(', ')}</p>`:''}
    ${st.tech&&st.tech.length?`<b>Techniques to try</b><ul>${st.tech.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
-   ${st.tip?`<p><b>Mr. Paul's paint-along tip:</b> ${esc(st.tip)}</p>`:''}
-   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes and a ${esc(name)} palette.</div>`;}
-function pickStyle(name){const st=STYLES[name];if(!st){customStyle(name);return}if(S.style!==name)setFace(faceIdx+1);S.style=name;
-  $$('.style').forEach(b=>b.classList.toggle('on',b.dataset.style===name));applyPreset(st);showLesson(name,st);
-  say(`<h4>${esc(name)}</h4>${esc(st.tip)}`);}
+   ${st.tip?`<p><b>Mr. Paul's paint-along tip:</b> ${esc(st.tip)}</p>`:''}</div></div>
+   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes and a ${esc(name)} palette. Its history stays on screen below your canvas while you paint.</div>`;}
+function renderHistory(){const box=$('#historyPanel');const name=S.style;
+  if(!name){box.innerHTML='<h3>Style History</h3><div class="note">Pick a style from the Style menu above to see its history, famous artists and famous paintings here.</div>';return}
+  const h=HISTORY[name]||(S.custom[name]&&S.custom[name].hist)||null;const u=exampleURL(name);
+  if(!h){box.innerHTML=`<h3>${esc(name)}: Style History</h3><div class="note">No history available for this style yet.</div>`;return}
+  box.innerHTML=`<h3>${esc(name)}: Style History</h3><div class="cols">
+   <div>${u?`<img src="${u}" alt="" style="width:100%;max-width:260px;border-radius:8px;border:1px solid var(--line);float:right;margin:0 0 8px 12px">`:''}<p>${esc(h.history)}</p></div>
+   <div><b>Famous artists</b><ul>${h.artists.map(a=>`<li><b>${esc(a[0])}</b>: ${esc(a[1])}</li>`).join('')}</ul></div>
+   <div><b>${name==='Cartoonish'?'Famous works':'Famous paintings'}</b> <span class="note">(opens in a new window)</span><ul>${h.works.map(w=>`<li><a href="${wikiLink(w[4]||w[0])}" target="_blank" rel="noopener">${esc(w[0])}</a><br><span class="note">${esc(w[1])}, ${esc(w[2])}${w[3]?' · '+esc(w[3]):''}</span></li>`).join('')}</ul></div></div>`}
+function buildStudioStyleMenu(){const sel=$('#studioStyle');const names=Object.keys(STYLES).concat(Object.keys(S.custom));
+  sel.innerHTML='<option value="">Pick a style…</option>'+names.map(n=>`<option${n===S.style?' selected':''}>${esc(n)}</option>`).join('')}
+function pickStyle(name,stay){const st=styleData(name);if(!st){customStyle(name);return}if(S.style!==name)setFace(faceIdx+1);S.style=name;
+  $$('.style').forEach(b=>b.classList.toggle('on',b.dataset.style===name));applyPreset(st);showLesson(name,st);buildStudioStyleMenu();renderHistory();
+  say(`<h4>${esc(name)}</h4>${esc(st.tip||'')}${stay?'<br><span class="note">Your painting stays the same. Only the palette, recommended brushes and tips changed.</span>':''}`);}
 async function customStyle(name){name=String(name||'').trim();if(!name)return;const t=thinking('Mr. Paul is preparing a lesson on '+name+'…');
-  try{const j=await api('lesson',{style:name});t.remove();const st={era:j.era,about:j.about,artists:j.artists,tech:j.techniques,tip:j.tip,brushes:j.brushes,palette:j.palette,paper:j.paper};
-    S.style=j.name||name;$$('.style').forEach(b=>b.classList.remove('on'));applyPreset(st);showLesson(S.style,st);say(`<h4>${esc(S.style)}</h4>${esc(st.tip||'')}`);go(2);}
+  try{const j=await api('lesson',{style:name});t.remove();const nm=String(j.name||name).slice(0,60);
+    const st={era:j.era,about:j.about,artists:(j.artistInfo||[]).map(a=>a.name),tech:j.techniques,tip:j.tip,brushes:j.brushes,palette:j.palette,paper:j.paper,
+      hist:{history:String(j.history||j.about||''),artists:(j.artistInfo||[]).slice(0,4).map(a=>[String(a.name||''),String(a.known||'')]),works:(j.works||[]).slice(0,4).map(w=>[String(w.title||''),String(w.artist||''),String(w.year||''),'',`${w.title||''} ${w.artist||''}`])}};
+    S.custom[nm]=st;pickStyle(nm);if(S.step<3)go(2);}
   catch(e){t.remove();say(esc(e.message))}}
 $('#customBtn').onclick=()=>customStyle($('#customStyle').value);
 
@@ -626,10 +729,11 @@ $('#color').oninput=e=>S.rgb=hexToRgb(e.target.value);
 const upd=()=>{S.size=+$('#size').value;S.op=$('#opacity').value/100;S.stab=$('#stab').value/100;$('#sizeVal').textContent=S.size;$('#opVal').textContent=Math.round(S.op*100)+'%'};
 ['size','opacity','stab'].forEach(id=>$('#'+id).oninput=upd);upd();
 $('#wetPaper').onchange=e=>S.wetPaper=e.target.checked;
-$$('input[name=layer]').forEach(r=>r.onchange=()=>{setActive(r.value);if(S.tool==='move'&&r.value==='bg')setTool(S.lastPaintTool);syncUI()});
+$$('.layerBtn').forEach(b=>b.onclick=()=>{setActive(b.dataset.layer);if(S.tool==='move'&&b.dataset.layer==='bg')setTool(S.lastPaintTool)});
 $('#showBg').onchange=e=>{S.showBg=e.target.checked;requestRender()};$('#showSubj').onchange=e=>{S.showSubj=e.target.checked;requestRender()};
 $('#fillLayer').onclick=()=>{pushUndo();const x=ctxOf(targetLayer());x.save();x.globalAlpha=S.op;x.fillStyle=rgba(S.rgb,1);x.fillRect(0,0,W,H);x.restore();requestRender()};
 $('#clearLayer').onclick=()=>{pushUndo();targetLayer().getContext('2d').clearRect(0,0,W,H);requestRender()};
+$('#fillLayer1').onclick=()=>$('#fillLayer').onclick();$('#clearLayer1').onclick=()=>$('#clearLayer').onclick();
 $('#subjScale').oninput=e=>{S.t.s=e.target.value/100;requestRender()};$('#subjRot').oninput=e=>{S.t.r=+e.target.value;requestRender()};
 $('#subjReset').onclick=()=>{S.t={x:0,y:0,s:1,r:0};$('#subjScale').value=100;$('#subjRot').value=0;requestRender()};
 $('#combineBtn').onclick=combine;$('#combineBtn2').onclick=()=>{combine();if(!S.original)S.original=clone(L.merged)};
@@ -699,22 +803,31 @@ $('#guideToggle').onclick=()=>{S.guideOn=!S.guideOn;syncUI();requestRender()};
 /* ---------- upload finished painting ---------- */
 $('#uploadPainting').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const img=await loadImageFile(f);const k=Math.min(1,2400/Math.max(img.width,img.height));const w=Math.round(img.width*k),h=Math.round(img.height*k);
-    setSize(w,h);L.merged=mk(w,h);L.merged.getContext('2d').drawImage(img,0,0,w,h);S.merged=true;S.active='merged';S.undo=[];S.redo=[];S.original=clone(L.merged);S.spots=[];S.hasGuide=false;
+    resetPainting(w,h);L.merged=mk(w,h);L.merged.getContext('2d').drawImage(img,0,0,w,h);S.mergedAt=clone(L.merged);S.merged=true;S.active='merged';S.undo=[];S.redo=[];S.original=clone(L.merged);S.spots=[];S.hasGuide=false;
     go(4);say('Your painting is in the Finishing Room. Tap <b>Check my painting</b> for my notes, or try <b>Remove stray marks</b> and the Adjust sliders.')}catch(err){say(esc(err.message))}};
 
 /* ---------- finishing: check & spots ---------- */
 function hitSpot(p){return S.step===4?S.spots.find(s=>Math.hypot(p.x-s.x*W,p.y-s.y*H)<=Math.max(18,s.r*W)):null}
 function healSpot(s){pushUndo();const c=ctxOf(L.merged),r=Math.max(10,s.r*W*.9);
   for(let i=0;i<3;i++)patchOp(c,s.x*W,s.y*H,r,'heal',.85);S.spots=S.spots.filter(q=>q!==s);syncUI();requestRender();say('Spot healed. Not quite right? Tap Undo.');}
+const SPOT_TOOLS=['heal','blend','smudge','eraser','watercolor','charcoal','pastel','pencil','ink','oil','marker','dots','facet'];
 $('#checkBtn').onclick=async()=>{if(!S.merged){say('Combine your layers first.');return}const btn=$('#checkBtn');btn.disabled=true;const t=thinking('Mr. Paul is looking closely at your painting…');
   try{const j=await api('check',{image:paintingJpeg(1000),style:S.style||'',vision:S.vision||''});t.remove();
-    S.spots=(j.spots||[]).filter(s=>s&&isFinite(s.x)&&isFinite(s.y)).slice(0,6).map(s=>({x:clamp(+s.x,0,1),y:clamp(+s.y,0,1),r:clamp(+s.r||.04,.015,.15),note:String(s.note||'')}));
+    S.spots=(j.spots||[]).filter(s=>s&&isFinite(s.x)&&isFinite(s.y)).slice(0,6).map(s=>({x:clamp(+s.x,0,1),y:clamp(+s.y,0,1),r:clamp(+s.r||.04,.015,.15),
+      title:String(s.title||s.note||'Spot to fix'),steps:(Array.isArray(s.steps)?s.steps:[]).slice(0,5).map(String),tool:SPOT_TOOLS.includes(s.tool)?s.tool:'heal',
+      color:/^#[0-9a-f]{6}$/i.test(s.color||'')?s.color:null,size:clamp(+s.size||20,2,140)}));
     let h=`<h4>Mr. Paul's notes</h4><p>${esc(j.summary||'')}</p>`;
     if(j.strengths&&j.strengths.length)h+=`<b>What's working</b><ul>${j.strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
-    if(j.tips&&j.tips.length)h+=`<b>Try this</b><ul>${j.tips.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
-    if(S.spots.length)h+=`<b>Circled spots</b> (tap a circle on the painting to heal it)<ol>${S.spots.map(s=>`<li>${esc(s.note)}</li>`).join('')}</ol>`;
-    say(h);syncUI();requestRender();}
+    if(j.tips&&j.tips.length)h+=`<b>Try this next</b><ul>${j.tips.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
+    if(S.spots.length)h+=`<b>How to fix each circled spot</b><div class="note">Tap a circle on the painting to jump to its steps.</div>`+S.spots.map((s,i)=>`<div class="spot" id="spot${i}"><b>Spot ${i+1}: ${esc(s.title)}</b><ol>${s.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol><button class="secondary setup" data-i="${i}">Set it up for me</button></div>`).join('');
+    const m=say(h);m.querySelectorAll('.setup').forEach(b=>b.onclick=()=>setupSpot(+b.dataset.i));syncUI();requestRender();}
   catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+function setupSpot(i){const s=S.spots[i];if(!s)return;
+  if(FINISH_TOOLS.includes(s.tool))setTool(s.tool);else{S.lastPaintTool=s.tool;setTool('touchup');buildTools();markTool()}
+  if(s.color){S.rgb=hexToRgb(s.color);$('#color').value=s.color}
+  $('#size').value=Math.round(s.size);upd();
+  say(`Ready for spot ${i+1}: <b>${esc(s.tool==='touchup'?BR[S.lastPaintTool].name:BR[s.tool].name)}</b> is selected${s.color?`, color set to <span class="sw" style="display:inline-block;width:14px;height:14px;vertical-align:middle;background:${s.color}"></span>`:''}, brush size ${Math.round(s.size)}. Now paint over the circle following the steps. Undo if it doesn't look right.`)}
+function flashSpot(s){const i=S.spots.indexOf(s),el=document.getElementById('spot'+i);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1600)}}
 $('#clearSpots').onclick=()=>{S.spots=[];syncUI();requestRender()};
 
 /* ---------- finishing: stray marks, soften ---------- */
@@ -779,17 +892,45 @@ let restoreArm=0;$('#restoreBtn').onclick=()=>{const b=$('#restoreBtn');if(!S.or
 const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
 function saveBlob(canvas,type,q,name){canvas.toBlob(b=>{if(!b){say('Download failed. Please try again.');return}const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},type,q)}
 function baseName(){return slug($('#dlTitle').value)||'my-painting'}
-$('#dlFull').onclick=()=>{saveBlob(compositeCanvas(false),'image/png',1,baseName()+'-full-size.png');say('Full size download started.')};
+function finalChoice(){return S.ai?$('input[name=finalV]:checked').value:'mine'}
+function finalCanvas(){const v=finalChoice();if(v==='ai')return S.ai;if(v!=='both')return compositeCanvas(false);
+  const a=compositeCanvas(false),b=S.ai,hh=1200,wa=a.width*hh/a.height,wb=b.width*hh/b.height,gap=40,lab=80,c=mk(wa+wb+gap*3,hh+gap*2+lab),x=c.getContext('2d');
+  x.fillStyle='#f4efe4';x.fillRect(0,0,c.width,c.height);x.drawImage(a,gap,gap,wa,hh);x.drawImage(b,gap*2+wa,gap,wb,hh);
+  x.fillStyle='#1f3b4d';x.font='bold 44px Georgia, serif';x.textAlign='center';x.textBaseline='middle';x.fillText('My painting',gap+wa/2,gap+hh+lab/2);x.fillText('AI version',gap*2+wa+wb/2,gap+hh+lab/2);return c}
+function creditLine(){const v=finalChoice();return v==='ai'?'Created with The Art Studio · NuSparkLearnWow.com':v==='both'?'My painting vs. AI version · The Art Studio · NuSparkLearnWow.com':'Painted in The Art Studio · NuSparkLearnWow.com'}
+const vSuffix=()=>({mine:'',ai:'-ai-version',both:'-side-by-side'})[finalChoice()];
+$('#dlFull').onclick=()=>{saveBlob(finalCanvas(),'image/png',1,baseName()+vSuffix()+'-full-size.png');say('Full size download started.')};
 $('#dlShare').onclick=()=>{const portrait=$('input[name=shape]:checked').value==='portrait',ow=1080,oh=portrait?1350:1080;
   const o=mk(ow,oh),x=o.getContext('2d');x.fillStyle='#f4efe4';x.fillRect(0,0,ow,oh);
-  const src=compositeCanvas(false),credit=$('#credit').checked,foot=credit?70:0,pad=40;
+  const src=finalCanvas(),credit=$('#credit').checked,foot=credit?70:0,pad=40;
   const k=Math.min((ow-pad*2)/src.width,(oh-pad*2-foot)/src.height),w=src.width*k,h=src.height*k,px=(ow-w)/2,py=(oh-foot-h)/2;
   x.shadowColor='rgba(0,0,0,.25)';x.shadowBlur=18;x.shadowOffsetY=4;x.drawImage(src,px,py,w,h);x.shadowColor='transparent';
   if(credit){const t=$('#dlTitle').value.trim(),n=$('#dlName').value.trim();x.fillStyle='#3a3a3a';x.textAlign='center';x.textBaseline='middle';
     let line1=t?`"${t}"`:'';if(n)line1+=(line1?' by ':'By ')+n;
     if(line1){x.font='bold 26px Georgia, serif';x.fillText(line1,ow/2,oh-foot+18)}
-    x.font='18px sans-serif';x.fillStyle='#6b6457';x.fillText('Painted in The Art Studio · NuSparkLearnWow.com',ow/2,oh-foot+(line1?50:30));}
-  saveBlob(o,'image/jpeg',.9,baseName()+(portrait?'-share-portrait.jpg':'-share-square.jpg'));say('Share size download started. Ready for Facebook and Instagram.')};
+    x.font='18px sans-serif';x.fillStyle='#6b6457';x.fillText(creditLine(),ow/2,oh-foot+(line1?50:30));}
+  saveBlob(o,'image/jpeg',.9,baseName()+vSuffix()+(portrait?'-share-portrait.jpg':'-share-square.jpg'));say('Share size download started. Ready for Facebook and Instagram.')};
+
+/* ---------- See it like a pro ---------- */
+$('#proBtn').onclick=async()=>{const btn=$('#proBtn');btn.disabled=true;const t=thinking('Mr. Paul is writing your pro prompt…');
+  try{const j=await api('pro',{image:paintingJpeg(1000),style:S.style||'',vision:S.vision||'',portrait:!!S.portrait});t.remove();
+    $('#proPrompt').value=String(j.prompt||'');$('#proBox').classList.remove('hide');
+    say('Your pro prompt is ready. Follow the 5 numbered steps on the right: download your painting, copy the prompt, paste both into ChatGPT or Gemini, then upload the picture it makes. I\'ll compare it with yours.')}
+  catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+$('#proDl').onclick=()=>{saveBlob(compositeCanvas(false),'image/jpeg',.92,baseName()+'-for-ai.jpg');say('Painting saved. Next, tap <b>Copy prompt</b>.')};
+$('#proCopy').onclick=async()=>{const ta=$('#proPrompt');try{await navigator.clipboard.writeText(ta.value)}catch(e){ta.select();document.execCommand('copy')}say('Prompt copied. Open ChatGPT or Gemini, upload your painting, and paste the prompt.')};
+$('#aiUpload').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const img=await loadImageFile(f);const k=Math.min(1,2400/Math.max(img.width,img.height));const c=mk(img.width*k,img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);S.ai=c;S.wipe=.5;$('#wipe').value=50;
+    syncUI();requestRender();const t=thinking('Mr. Paul is comparing the two paintings…');
+    const k2=Math.min(1,900/Math.max(c.width,c.height)),sm=mk(c.width*k2,c.height*k2);sm.getContext('2d').drawImage(c,0,0,sm.width,sm.height);
+    try{const j=await api('compare',{mine:paintingJpeg(900),ai:sm.toDataURL('image/jpeg',.85).split(',')[1],style:S.style||''});t.remove();
+      let h=`<h4>Yours vs. the AI version</h4><p>${esc(j.summary||'')}</p>`;
+      if(j.differences&&j.differences.length)h+=`<b>What the AI did differently</b><ul>${j.differences.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+      if(j.tryNext&&j.tryNext.length)h+=`<b>Try these in your own painting</b><ol>${j.tryNext.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`;
+      say(h+'<span class="note">Drag the slider or the canvas to compare. Then choose your final version on the right.</span>')}catch(err){t.remove();say(esc(err.message))}}
+  catch(err){say(esc(err.message))}};
+function setWipe(v){S.wipe=clamp(v,0,1);$('#wipe').value=Math.round(S.wipe*100);requestRender()}
+$('#wipe').oninput=e=>setWipe(e.target.value/100);
 
 /* ---------- ask Mr. Paul ---------- */
 $('#askBtn').onclick=async()=>{const q=$('#askText').value.trim();if(!q)return;say(esc(q),true);$('#askText').value='';const btn=$('#askBtn');btn.disabled=true;const t=thinking();
@@ -851,8 +992,244 @@ const FACES=[
 let faceIdx=Math.floor(Math.random()*FACES.length);
 function setFace(i){faceIdx=(i+FACES.length)%FACES.length;$('#face').innerHTML=FACES[faceIdx]}
 
+/* ---------- style history (Mr. Paul's quick history lessons) ---------- */
+// works: [title, artist, year, where, wikipedia search term]
+const HISTORY={
+"Renaissance":{history:"The Renaissance (\"rebirth\") began in Italy in the 1400s. Artists studied ancient Greek and Roman art and science, worked out how to show real depth with perspective, and painted people with new realism and emotion. Its ideas spread across Europe and shaped Western art for centuries.",
+ artists:[["Leonardo da Vinci","Painter, inventor and scientist known for soft, smoky shading"],["Michelangelo","Painted the Sistine Chapel ceiling and sculpted David"],["Raphael","Famous for calm, perfectly balanced scenes"],["Jan van Eyck","Northern Renaissance master of tiny, glowing detail in oil"]],
+ works:[["Mona Lisa","Leonardo da Vinci","c. 1503–1519","Louvre, Paris","Mona Lisa"],["The Last Supper","Leonardo da Vinci","c. 1495–1498","Santa Maria delle Grazie, Milan","The Last Supper (Leonardo)"],["The School of Athens","Raphael","1509–1511","Apostolic Palace, Vatican City","The School of Athens"],["Arnolfini Portrait","Jan van Eyck","1434","National Gallery, London","Arnolfini Portrait"]]},
+"Baroque":{history:"Baroque art grew in Europe from about 1600. Painters wanted to stir strong feelings, so they used dramatic light against deep shadow, swirling movement and rich color. In the Netherlands, painters of the same era turned that light toward quiet everyday scenes.",
+ artists:[["Caravaggio","Pioneered spotlight-like light against darkness"],["Rembrandt","Master of light, shadow and honest portraits"],["Johannes Vermeer","Quiet rooms filled with soft window light"],["Diego Velázquez","Spanish court painter with daring, loose brushwork"]],
+ works:[["The Night Watch","Rembrandt","1642","Rijksmuseum, Amsterdam","The Night Watch"],["Girl with a Pearl Earring","Johannes Vermeer","c. 1665","Mauritshuis, The Hague","Girl with a Pearl Earring"],["Las Meninas","Diego Velázquez","1656","Museo del Prado, Madrid","Las Meninas"],["The Calling of Saint Matthew","Caravaggio","1599–1600","San Luigi dei Francesi, Rome","The Calling of Saint Matthew"]]},
+"Romanticism":{history:"Romanticism rose in the late 1700s and early 1800s as a reaction against cold logic and the new industrial age. Artists celebrated emotion, imagination and the awe-inspiring power of nature: storms, seas, mountains and glowing skies.",
+ artists:[["J.M.W. Turner","Painted light, weather and sea as swirling color"],["Caspar David Friedrich","Lonely figures facing vast, misty landscapes"],["John Constable","Fresh, honest English countryside and skies"],["Eugène Delacroix","Bold color and dramatic, emotional scenes"]],
+ works:[["Wanderer above the Sea of Fog","Caspar David Friedrich","c. 1818","Hamburger Kunsthalle, Hamburg","Wanderer above the Sea of Fog"],["The Fighting Temeraire","J.M.W. Turner","1839","National Gallery, London","The Fighting Temeraire"],["The Hay Wain","John Constable","1821","National Gallery, London","The Hay Wain"]]},
+"Realism":{history:"Realism began in France around the 1840s and 1850s. Instead of heroes, gods and history, painters showed ordinary working people and everyday life as it really was, often to make viewers notice hard work and hardship.",
+ artists:[["Gustave Courbet","Leader of the movement who painted everyday life on a grand scale"],["Jean-François Millet","Dignified paintings of farm workers"],["Rosa Bonheur","Celebrated animal painter of her time"],["Honoré Daumier","Painter and cartoonist of city life"]],
+ works:[["The Gleaners","Jean-François Millet","1857","Musée d'Orsay, Paris","The Gleaners"],["A Burial at Ornans","Gustave Courbet","1849–1850","Musée d'Orsay, Paris","A Burial at Ornans"],["The Horse Fair","Rosa Bonheur","1852–1855","Metropolitan Museum of Art, New York","The Horse Fair"]]},
+"Impressionism":{history:"Impressionism began in France in the 1870s. Painters took their easels outdoors to capture a passing moment of light with quick, visible strokes. The name came from a critic mocking Monet's \"Impression, Sunrise\" at their first group show in 1874, and the artists kept it.",
+ artists:[["Claude Monet","Painted the same scene again and again to catch changing light"],["Pierre-Auguste Renoir","Joyful scenes of people enjoying life"],["Berthe Morisot","Intimate moments painted with light, feathery strokes"],["Edgar Degas","Dancers and city life seen from unusual angles"]],
+ works:[["Impression, Sunrise","Claude Monet","1872","Musée Marmottan Monet, Paris","Impression, Sunrise"],["Bal du moulin de la Galette","Pierre-Auguste Renoir","1876","Musée d'Orsay, Paris","Bal du moulin de la Galette"],["The Cradle","Berthe Morisot","1872","Musée d'Orsay, Paris","The Cradle (Morisot)"],["Water Lilies (series)","Claude Monet","1896–1926","Musée de l'Orangerie, Paris and others","Water Lilies (Monet series)"]]},
+"Post-Impressionism":{history:"Post-Impressionism covers artists of the 1880s to early 1900s who built on Impressionism's bright color but went their own ways: adding structure, symbolism or intense personal emotion. The name was coined later, in 1910, by the English critic Roger Fry.",
+ artists:[["Vincent van Gogh","Swirling, expressive strokes and intense color"],["Paul Cézanne","Built nature from simple shapes, inspiring Cubism"],["Georges Seurat","Invented pointillism: pictures made of tiny dots"],["Paul Gauguin","Flat, bold colors and simplified forms"]],
+ works:[["The Starry Night","Vincent van Gogh","1889","Museum of Modern Art, New York","The Starry Night"],["A Sunday Afternoon on the Island of La Grande Jatte","Georges Seurat","1884–1886","Art Institute of Chicago","A Sunday Afternoon on the Island of La Grande Jatte"],["Sunflowers (series)","Vincent van Gogh","1888–1889","National Gallery, London and others","Sunflowers (Van Gogh series)"],["The Card Players (series)","Paul Cézanne","early 1890s","Musée d'Orsay and others","The Card Players"]]},
+"Cubism":{history:"Cubism was started in Paris around 1907–1908 by Pablo Picasso and Georges Braque, inspired partly by Cézanne. They broke objects into geometric pieces and showed several viewpoints at once. A critic's remark about Braque's \"little cubes\" gave the style its name. It opened the door to abstract art.",
+ artists:[["Pablo Picasso","Co-founder of Cubism and one of the most famous artists ever"],["Georges Braque","Co-founder who worked side by side with Picasso"],["Juan Gris","Clear, colorful Cubist still lifes and portraits"]],
+ works:[["Three Musicians","Pablo Picasso","1921","Museum of Modern Art, New York (another version in Philadelphia)","Three Musicians"],["Violin and Candlestick","Georges Braque","1910","San Francisco Museum of Modern Art","Violin and Candlestick"],["Portrait of Pablo Picasso","Juan Gris","1912","Art Institute of Chicago","Portrait of Pablo Picasso (Gris)"]]},
+"Surrealism":{history:"Surrealism was launched in Paris in 1924 when the writer André Breton published the Surrealist Manifesto. Artists explored dreams and the unconscious mind, painting impossible scenes with realistic detail so the strange looks believable.",
+ artists:[["Salvador Dalí","Melting clocks and dreamlike desert scenes"],["René Magritte","Puzzling, witty images of everyday objects"],["Max Ernst","Inventive textures and strange creatures"]],
+ works:[["The Persistence of Memory","Salvador Dalí","1931","Museum of Modern Art, New York","The Persistence of Memory"],["The Treachery of Images","René Magritte","1929","Los Angeles County Museum of Art","The Treachery of Images"],["The Son of Man","René Magritte","1964","Private collection","The Son of Man"],["The Elephant Celebes","Max Ernst","1921","Tate Modern, London","The Elephant Celebes"]]},
+"Abstract Expressionism":{history:"Abstract Expressionism grew in New York in the 1940s and 1950s, the first American art movement to lead the art world. Some painters used energetic gestures and drips; others painted huge, calm fields of color meant to stir deep feelings.",
+ artists:[["Jackson Pollock","Dripped and poured paint onto canvas on the floor"],["Mark Rothko","Glowing rectangles of color"],["Willem de Kooning","Bold, slashing brushstrokes"],["Lee Krasner","Rhythmic, energetic abstract paintings"]],
+ works:[["Autumn Rhythm (Number 30)","Jackson Pollock","1950","Metropolitan Museum of Art, New York","Autumn Rhythm (Number 30)"],["Excavation","Willem de Kooning","1950","Art Institute of Chicago","Excavation (de Kooning)"],["The Seasons","Lee Krasner","1957","Whitney Museum of American Art, New York","Lee Krasner The Seasons"]]},
+"Pop Art":{history:"Pop Art began in Britain in the mid-1950s and exploded in the United States in the 1960s. Artists borrowed images from ads, comic books, celebrities and grocery shelves, using bold flat color and printing techniques to blur the line between art and everyday culture.",
+ artists:[["Andy Warhol","Soup cans, celebrities and silkscreen prints"],["Roy Lichtenstein","Giant comic-book panels with Ben-Day dots"],["Richard Hamilton","British artist who helped start Pop Art"]],
+ works:[["Campbell's Soup Cans","Andy Warhol","1962","Museum of Modern Art, New York","Campbell's Soup Cans"],["Marilyn Diptych","Andy Warhol","1962","Tate, London","Marilyn Diptych"],["Whaam!","Roy Lichtenstein","1963","Tate Modern, London","Whaam!"]]},
+"Watercolor":{history:"Painting with water-based pigments goes back thousands of years. As a fine-art medium, watercolor grew with Renaissance artists like Albrecht Dürer and flourished in Britain in the 1700s and 1800s, where it was loved for landscapes and travel sketches.",
+ artists:[["Albrecht Dürer","German master whose nature studies are still admired"],["J.M.W. Turner","Turned watercolor into glowing light and atmosphere"],["Winslow Homer","American master of sea and outdoor scenes"],["John Singer Sargent","Fast, brilliant watercolors full of sunlight"]],
+ works:[["Young Hare","Albrecht Dürer","1502","Albertina, Vienna","Young Hare"],["The Blue Rigi, Sunrise","J.M.W. Turner","1842","Tate Britain, London","The Blue Rigi, Sunrise"],["Muddy Alligators","John Singer Sargent","1917","Worcester Art Museum, Massachusetts","Muddy Alligators"]]},
+"Oil Painting":{history:"Oil paint was used as early as the 600s in Afghanistan, but Flemish painters like Jan van Eyck perfected it in the 1400s. Because it dries slowly and blends beautifully, it became the main painting medium in Europe and is still a favorite today.",
+ artists:[["Jan van Eyck","Perfected glowing, detailed oil glazes"],["Rembrandt","Rich, textured paint and deep shadows"],["Georgia O'Keeffe","Huge, close-up flowers and desert landscapes"],["Grant Wood","American scenes painted with crisp detail"]],
+ works:[["Ghent Altarpiece","Jan and Hubert van Eyck","completed 1432","St Bavo's Cathedral, Ghent","Ghent Altarpiece"],["American Gothic","Grant Wood","1930","Art Institute of Chicago","American Gothic"],["Jimson Weed/White Flower No. 1","Georgia O'Keeffe","1932","Crystal Bridges Museum of American Art, Arkansas","Jimson Weed/White Flower No. 1"]]},
+"Charcoal (Black & White)":{history:"Charcoal is one of the oldest art materials. People drew animals with it on cave walls more than 30,000 years ago. Renaissance masters used it to plan their paintings, and artists still love it for bold darks and soft, smudgy shading.",
+ artists:[["Leonardo da Vinci","Used charcoal and chalk for detailed preparatory drawings"],["Käthe Kollwitz","Powerful, emotional black-and-white drawings and prints"],["John Singer Sargent","Quick charcoal portraits of famous friends"],["Georges Seurat","Velvety drawings in black conté crayon"]],
+ works:[["Burlington House Cartoon (Virgin and Child with St Anne)","Leonardo da Vinci","early 1500s","National Gallery, London","Burlington House Cartoon"],["Portrait of Aman-Jean","Georges Seurat","1882–1883","Metropolitan Museum of Art, New York","Seurat Aman-Jean"],["Self-portrait drawings","Käthe Kollwitz","1890s–1930s","Various museums","Käthe Kollwitz self-portrait"]]},
+"Pastel":{history:"Pastel sticks are nearly pure pigment. They became popular for portraits in the 1700s, led by the Venetian artist Rosalba Carriera, and enjoyed a big revival in the late 1800s when Edgar Degas and Mary Cassatt used them for bright, lively scenes.",
+ artists:[["Edgar Degas","Ballet dancers in vivid, layered pastel"],["Mary Cassatt","Tender scenes of mothers and children"],["Rosalba Carriera","Made pastel portraits fashionable across Europe"],["Jean-Étienne Liotard","Smooth, lifelike pastel portraits"]],
+ works:[["L'Étoile (The Star)","Edgar Degas","c. 1878","Musée d'Orsay, Paris","L'Étoile Degas"],["The Chocolate Girl","Jean-Étienne Liotard","c. 1744–1745","Gemäldegalerie Alte Meister, Dresden","The Chocolate Girl"],["Mother and child pastels","Mary Cassatt","1890s–1900s","Various museums","Mary Cassatt pastel"]]},
+"Cartoonish":{history:"Cartoon art grew from caricature, funny exaggerated drawings of people, and took off with newspaper comic strips in the 1890s. Animation followed in the early 1900s. Simple shapes, bold outlines and big expressions make characters easy to read and fun to love.",
+ artists:[["Charles M. Schulz","Created the Peanuts comic strip"],["Bill Watterson","Created Calvin and Hobbes"],["Hergé","Created The Adventures of Tintin with clean, clear lines"]],
+ works:[["Peanuts (comic strip)","Charles M. Schulz","1950–2000","Newspapers worldwide","Peanuts"],["Calvin and Hobbes","Bill Watterson","1985–1995","Newspapers worldwide","Calvin and Hobbes"],["The Adventures of Tintin","Hergé","1929–1976","Comic albums","The Adventures of Tintin"]]}
+};
+const wikiLink=q=>'https://en.wikipedia.org/wiki/Special:Search?go=Go&search='+encodeURIComponent(q);
+/* ---------- "See an example": original art, same scene in every style ---------- */
+const EX_W=480,EX_H=320;
+const SCENE={
+  sky:{path:x=>{x.rect(0,0,EX_W,205)},box:[0,0,EX_W,205]},
+  ground:{path:x=>{x.rect(0,195,EX_W,EX_H-195)},box:[0,195,EX_W,EX_H-195]},
+  sun:{path:x=>{x.arc(390,65,32,0,7)},box:[358,33,64,64]},
+  wall:{path:x=>{x.rect(95,150,150,100)},box:[95,150,150,100]},
+  roof:{path:x=>{x.moveTo(80,152);x.lineTo(170,92);x.lineTo(260,152);x.closePath()},box:[80,92,180,60]},
+  door:{path:x=>{x.rect(155,195,32,55)},box:[155,195,32,55]},
+  win:{path:x=>{x.rect(110,170,32,28)},box:[110,170,32,28]},
+  trunk:{path:x=>{x.rect(332,175,16,75)},box:[332,175,16,75]},
+  crown:{path:x=>{x.arc(340,145,48,0,7)},box:[292,97,96,96]}
+};
+const ORDER=['sky','ground','sun','wall','roof','door','win','trunk','crown'];
+function clipDo(x,reg,fn){x.save();x.beginPath();SCENE[reg].path(x);x.clip();fn(SCENE[reg].box);x.restore()}
+function fillReg(x,reg,style){x.beginPath();SCENE[reg].path(x);x.fillStyle=style;x.fill()}
+function strokeReg(x,reg,col,w){x.beginPath();SCENE[reg].path(x);x.strokeStyle=col;x.lineWidth=w;x.lineJoin='round';x.stroke()}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function dabs(x,reg,col,n,len,wid,jt){clipDo(x,reg,([bx,by,bw,bh])=>{const c=hexToRgb(col);for(let i=0;i<n;i++){x.save();x.translate(bx+Math.random()*bw,by+Math.random()*bh);x.rotate(rnd(-.6,.2));
+  x.fillStyle=rgba(jit(c,jt),.85);x.fillRect(-len/2,-wid/2,len,wid);x.restore()}})}
+function strokesIn(x,reg,tool,col,size,dir,gap){const c=document.createElement('canvas');clipDo(x,reg,([bx,by,bw,bh])=>{
+  const tmp=mk(EX_W,EX_H);for(let y=by-size;y<by+bh+size;y+=gap){const pts=dir==='v'?null:[[bx-size,y+rnd(-3,3)],[bx+bw/2,y+rnd(-4,4)],[bx+bw+size,y+rnd(-3,3)]];runStroke(tmp,tool,pts,{rgb:hexToRgb(col),size,op:.9})}
+  x.drawImage(tmp,0,0)})}
+const EXAMPLES={
+ "Renaissance":x=>{let g=x.createLinearGradient(0,0,0,205);g.addColorStop(0,'#5d7fa8');g.addColorStop(1,'#e8d5b0');fillReg(x,'sky',g);
+   g=x.createLinearGradient(0,195,0,EX_H);g.addColorStop(0,'#7a7a4e');g.addColorStop(1,'#3d4a3a');fillReg(x,'ground',g);
+   fillReg(x,'sun','rgba(255,236,190,.7)');g=x.createLinearGradient(95,0,245,0);g.addColorStop(0,'#d9c39a');g.addColorStop(1,'#a8875c');fillReg(x,'wall',g);
+   g=x.createLinearGradient(80,0,260,0);g.addColorStop(0,'#9a4e2e');g.addColorStop(1,'#5b2e1a');fillReg(x,'roof',g);fillReg(x,'door','#4a2c1a');fillReg(x,'win','#2f3a45');fillReg(x,'trunk','#4a3424');
+   g=x.createRadialGradient(325,130,5,340,145,52);g.addColorStop(0,'#7d8a52');g.addColorStop(1,'#2f3a24');fillReg(x,'crown',g);
+   x.globalAlpha=.35;x.drawImage(blurCanvas(x.canvas,3),0,0);x.globalAlpha=1},
+ "Baroque":x=>{fillReg(x,'sky','#1a1410');fillReg(x,'ground','#140f0b');x.save();const g=x.createRadialGradient(170,180,10,170,180,190);g.addColorStop(0,'rgba(255,214,140,.9)');g.addColorStop(1,'rgba(0,0,0,0)');
+   fillReg(x,'wall','#c99a5a');fillReg(x,'roof','#6e1414');fillReg(x,'door','#2a1a10');fillReg(x,'win','#f1d9a7');fillReg(x,'trunk','#20150e');fillReg(x,'crown','#24301c');
+   x.globalCompositeOperation='multiply';x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,EX_W,EX_H);x.globalCompositeOperation='lighter';x.fillStyle=g;x.fillRect(0,0,EX_W,EX_H);x.restore()},
+ "Romanticism":x=>{let g=x.createLinearGradient(0,0,0,205);g.addColorStop(0,'#2b3a55');g.addColorStop(.6,'#c0583a');g.addColorStop(1,'#e3b46a');fillReg(x,'sky',g);
+   for(let i=0;i<14;i++){x.fillStyle=`rgba(${40+Math.random()*30},${45+Math.random()*30},${70+Math.random()*30},.5)`;x.beginPath();x.ellipse(rnd(0,EX_W),rnd(10,110),rnd(40,110),rnd(14,30),0,0,7);x.fill()}
+   x.drawImage(blurCanvas(x.canvas,4),0,0);fillReg(x,'sun','rgba(255,225,150,.85)');fillReg(x,'ground','#3b2f2a');
+   x.save();x.translate(170,200);x.scale(.6,.6);x.translate(-170,-200);['wall','roof','door','win'].forEach((r,i)=>fillReg(x,r,['#6b5a4a','#3b2a20','#1d140f','#e3b46a'][i]));x.restore();
+   fillReg(x,'trunk','#1f1915');fillReg(x,'crown','#2c2a22')},
+ "Realism":x=>{fillReg(x,'sky','#b9c3c8');fillReg(x,'ground','#7d6b54');dabs(x,'ground','#6a5a44',220,10,3,10);fillReg(x,'sun','#e6e2d3');
+   fillReg(x,'wall','#a89070');strokesIn(x,'wall','pencil','#7d6b54',8,'h',9);fillReg(x,'roof','#5a4636');fillReg(x,'door','#3a2e24');fillReg(x,'win','#4b5560');
+   fillReg(x,'trunk','#4b4237');fillReg(x,'crown','#55603f');dabs(x,'crown','#4a5436',160,8,4,12)},
+ "Impressionism":x=>{bg2(x,'#f3eee2');dabs(x,'sky','#8fb8de',650,12,5,25);dabs(x,'sky','#f2d06b',90,12,5,25);dabs(x,'ground','#9cc58f',420,12,5,25);dabs(x,'ground','#e98a6b',60,10,4,20);
+   dabs(x,'sun','#f6dd8a',120,10,5,20);dabs(x,'wall','#f0c9a0',260,10,5,20);dabs(x,'roof','#d9674b',180,10,5,20);dabs(x,'door','#7a5aa0',40,8,4,15);dabs(x,'win','#4a7ab5',40,8,4,15);
+   dabs(x,'trunk','#8a6a5a',50,8,4,15);dabs(x,'crown','#6aa86a',300,11,5,25);dabs(x,'crown','#b48ac9',50,10,4,20)},
+ "Post-Impressionism":x=>{fillReg(x,'sky','#1f3f8a');x.lineCap='round';for(let i=0;i<220;i++){const cx=rnd(0,EX_W),cy=rnd(0,190),r=rnd(6,18),a=rnd(0,6);x.strokeStyle=['#3e7cc0','#8fb8de','#f2c230'][i%3];x.lineWidth=4;x.beginPath();x.arc(cx,cy,r,a,a+1.6);x.stroke()}
+   fillReg(x,'sun','#f2c230');for(let i=0;i<24;i++){x.strokeStyle='#f6e08a';x.lineWidth=3;x.beginPath();x.arc(390,65,40+i%3*6,i/24*6.28,i/24*6.28+.3);x.stroke()}
+   fillReg(x,'ground','#3f8f4a');strokesIn(x,'ground','oil','#2d6a36',10,'h',14);fillReg(x,'wall','#f4ead0');fillReg(x,'roof','#e0682b');fillReg(x,'door','#1f3f8a');fillReg(x,'win','#f2c230');fillReg(x,'trunk','#5a3a20');
+   fillReg(x,'crown','#2d6a36');for(let i=0;i<60;i++){x.strokeStyle='#58a85e';x.lineWidth=3;x.beginPath();const a=rnd(0,6.28),d=rnd(5,40);x.arc(340+Math.cos(a)*d,145+Math.sin(a)*d,8,a,a+1.4);x.stroke()}
+   ['wall','roof','door','win','trunk','crown'].forEach(r=>strokeReg(x,r,'#1a1a2e',3))},
+ "Cubism":x=>{const pal=['#6b5a45','#a08b6c','#c9b896','#55606b','#7d8a6a','#2e2a26','#d8c8a4'];
+   const base={sky:'#a9b0a8',ground:'#7d6b54',sun:'#d8c8a4',wall:'#c9b896',roof:'#6b5a45',door:'#2e2a26',win:'#55606b',trunk:'#4a3f33',crown:'#7d8a6a'};
+   ORDER.forEach(r=>fillReg(x,r,base[r]));
+   ORDER.forEach(r=>clipDo(x,r,([bx,by,bw,bh])=>{for(let i=0;i<Math.max(6,Math.round(bw*bh/1800));i++){x.fillStyle=pal[(Math.random()*pal.length)|0];x.globalAlpha=.85;x.beginPath();const cx=bx+Math.random()*bw,cy=by+Math.random()*bh;
+     for(let k=0;k<4;k++){const a=Math.random()*6.28,d=10+Math.random()*Math.min(45,Math.max(bw,bh)*.5);k?x.lineTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d):x.moveTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d)}x.closePath();x.fill();x.strokeStyle='rgba(30,25,20,.7)';x.lineWidth=1.5;x.stroke()}x.globalAlpha=1}));
+   ['wall','roof','door','win','trunk','crown','sun'].forEach(r=>strokeReg(x,r,'#2e2a26',2.5));x.save();x.translate(18,-6);strokeReg(x,'roof','#2e2a26',2);strokeReg(x,'wall','rgba(46,42,38,.6)',2);x.restore()},
+ "Surrealism":x=>{let g=x.createLinearGradient(0,0,0,205);g.addColorStop(0,'#2d4f7c');g.addColorStop(1,'#e8c27a');fillReg(x,'sky',g);g=x.createLinearGradient(0,195,0,EX_H);g.addColorStop(0,'#c4643f');g.addColorStop(1,'#7a3a22');fillReg(x,'ground',g);
+   x.fillStyle='rgba(242,236,216,.95)';x.beginPath();x.arc(390,70,44,0,7);x.fill();x.fillStyle='#e8c27a';x.beginPath();x.arc(406,62,40,0,7);x.fill();
+   x.fillStyle='rgba(0,0,0,.35)';x.beginPath();x.ellipse(170,262,85,10,0,0,7);x.fill();
+   x.save();x.translate(0,-40);['wall','roof','door','win'].forEach((r,i)=>fillReg(x,r,['#f2ecd8','#87a9c9','#3c3c3c','#87a9c9'][i]));x.restore();
+   fillReg(x,'trunk','#3c3c3c');x.fillStyle='#87a9c9';x.beginPath();x.arc(340,140,30,0,7);x.fill();x.fillStyle='#e8c27a';x.beginPath();x.arc(340,140,12,0,7);x.fill()},
+ "Abstract Expressionism":x=>{bg2(x,'#f4f1e8');x.globalAlpha=.85;[['#2e6fa7',0,0,480,190],['#c9302c',60,170,260,150],['#f0b429',300,140,180,180]].forEach(([c,a,b,w,h])=>{x.fillStyle=c;x.fillRect(a+rnd(-8,8),b+rnd(-8,8),w,h)});x.globalAlpha=1;
+   const t=mk(EX_W,EX_H);for(let i=0;i<9;i++){const y=rnd(20,300);runStroke(t,'oil',[[rnd(-20,100),y],[rnd(150,330),y+rnd(-60,60)],[rnd(380,500),y+rnd(-60,60)]],{rgb:hexToRgb(['#1b1b1b','#f4f1e8','#6b4f9a'][i%3]),size:rnd(6,14)})}x.drawImage(t,0,0);
+   x.strokeStyle='#1b1b1b';x.lineWidth=2;for(let i=0;i<40;i++){x.beginPath();let px=rnd(0,EX_W),py=rnd(0,EX_H);x.moveTo(px,py);for(let k=0;k<4;k++){px+=rnd(-60,60);py+=rnd(-40,40);x.lineTo(px,py)}x.stroke()}},
+ "Pop Art":x=>{fillReg(x,'sky','#ffd60a');clipDo(x,'sky',()=>{x.fillStyle='#ff8fab';for(let y=0;y<210;y+=12)for(let i=0;i<EX_W;i+=12){x.beginPath();x.arc(i+((y/12)%2?6:0),y,3.5,0,7);x.fill()}});
+   fillReg(x,'ground','#1d70b8');fillReg(x,'sun','#e63946');fillReg(x,'wall','#ffffff');fillReg(x,'roof','#e63946');fillReg(x,'door','#1d70b8');fillReg(x,'win','#ffd60a');fillReg(x,'trunk','#111111');fillReg(x,'crown','#2ec27e');
+   ORDER.slice(2).forEach(r=>strokeReg(x,r,'#111',5))},
+ "Watercolor":x=>{bg2(x,'#fbf8f1');x.globalCompositeOperation='multiply';const wash=(reg,col,a)=>{const t=mk(EX_W,EX_H),tx=t.getContext('2d');tx.beginPath();SCENE[reg].path(tx);tx.fillStyle=col;tx.fill();
+     x.globalAlpha=a;x.drawImage(blurCanvas(t,1.6),0,0);const e=clone(t),ex=e.getContext('2d');ex.globalCompositeOperation='destination-out';ex.drawImage(blurCanvas(t,8),0,0);x.globalAlpha=a*.9;x.drawImage(e,0,0);x.globalAlpha=1};
+   x.save();x.beginPath();x.rect(0,0,EX_W,EX_H);x.clip();
+   const sky=mk(EX_W,EX_H),sx=sky.getContext('2d');let g=sx.createLinearGradient(0,0,0,210);g.addColorStop(0,'#5fa3c8');g.addColorStop(1,'rgba(129,195,215,.15)');sx.fillStyle=g;sx.fillRect(0,0,EX_W,205);x.globalAlpha=.7;x.drawImage(blurCanvas(sky,3),0,0);x.globalAlpha=1;
+   wash('ground','#6a994e',.75);wash('sun','#e0a030',.85);wash('wall','#e2b07a',.6);wash('roof','#c1502e',.85);wash('door','#5e3c58',.85);wash('win','#2f6690',.8);wash('trunk','#7a5236',.85);wash('crown','#6a994e',.8);wash('crown','#3e6e30',.35);x.restore();x.globalCompositeOperation='source-over'},
+ "Oil Painting":x=>{fillReg(x,'sky','#2a9d8f');strokesIn(x,'sky','oil','#8fd3c7',16,'h',22);strokesIn(x,'ground','oil','#e9c46a',16,'h',20);fillReg(x,'sun','#f4a261');
+   strokesIn(x,'wall','oil','#f6efe0',12,'h',14);strokesIn(x,'roof','oil','#e76f51',12,'h',12);fillReg(x,'door','#264653');fillReg(x,'win','#264653');strokesIn(x,'trunk','oil','#6b4a2e',8,'h',8);strokesIn(x,'crown','oil','#2f7d5b',14,'h',14)},
+ "Charcoal (Black & White)":x=>{bg2(x,'#d9cdb8');const t=mk(EX_W,EX_H);const sh=(reg,col,size,gap)=>{clipDo(t.getContext('2d'),reg,([bx,by,bw,bh])=>{for(let y=by;y<by+bh;y+=gap)runStroke(t,'charcoal',[[bx-5,y],[bx+bw+5,y+rnd(-6,6)]],{rgb:col,size,op:.9})})};
+   sh('sky',[140,140,140],5,40);sh('ground',[50,50,50],12,16);sh('roof',[20,20,20],10,6);sh('wall',[90,90,90],8,14);sh('door',[10,10,10],8,5);sh('win',[25,25,25],8,6);sh('trunk',[15,15,15],7,5);sh('crown',[30,30,30],12,7);
+   x.drawImage(t,0,0);const c=ctxOf(x.canvas);for(let i=0;i<10;i++)patchOp(c,390+rnd(-15,15),65+rnd(-15,15),24,'blend',.6);['wall','roof','door','win','trunk','crown'].forEach(r=>strokeReg(x,r,'rgba(20,20,20,.6)',1.5))},
+ "Pastel":x=>{bg2(x,'#d9cdb8');const t=mk(EX_W,EX_H);const sh=(reg,col,size,gap)=>{clipDo(t.getContext('2d'),reg,([bx,by,bw,bh])=>{for(let y=by;y<by+bh;y+=gap)runStroke(t,'pastel',[[bx-5,y],[bx+bw+5,y+rnd(-6,6)]],{rgb:hexToRgb(col),size,op:1})})};
+   sh('sky','#a0c4ff',14,12);sh('sky','#bdb2ff',10,30);sh('ground','#caffbf',14,11);sh('sun','#fdffb6',12,8);sh('wall','#ffc6a5',12,10);sh('roof','#f4a7b9',12,8);sh('door','#bdb2ff',8,6);sh('win','#a0c4ff',8,6);sh('trunk','#c9a27a',7,5);sh('crown','#9be3a0',13,9);x.drawImage(t,0,0)},
+ "Cartoonish":x=>{fillReg(x,'sky','#8fd3ff');fillReg(x,'ground','#6bcb77');fillReg(x,'sun','#ffd93d');fillReg(x,'wall','#fff4d6');fillReg(x,'roof','#ff6b6b');fillReg(x,'door','#4d96ff');fillReg(x,'win','#cfefff');fillReg(x,'trunk','#9c6b3f');fillReg(x,'crown','#3fb950');
+   ORDER.slice(2).forEach(r=>strokeReg(x,r,'#222',4));x.fillStyle='#222';x.beginPath();x.arc(380,58,3.5,0,7);x.arc(400,58,3.5,0,7);x.fill();x.strokeStyle='#222';x.lineWidth=3;x.beginPath();x.arc(390,70,10,.2,2.9);x.stroke();
+   x.strokeStyle='#fff';x.lineWidth=5;x.beginPath();x.moveTo(30,40);x.quadraticCurveTo(60,20,90,40);x.quadraticCurveTo(120,20,150,40);x.stroke()}
+};
+function bg2(x,col){x.fillStyle=col;x.fillRect(0,0,EX_W,EX_H)}
+const exCache={};
+function exampleURL(name){if(exCache[name])return exCache[name];const fn=EXAMPLES[name];if(!fn)return null;const c=mk(EX_W,EX_H),x=ctxOf(c);x.fillStyle='#fff';x.fillRect(0,0,EX_W,EX_H);
+  try{fn(x)}catch(e){console.warn(e);return null}return exCache[name]=c.toDataURL('image/jpeg',.88)}
+/* ---------- Mr. Paul explains every button ---------- */
+const EXPLAIN={
+ 'tool:watercolor':"<b>Watercolor</b> lays down see-through color, darker at the edges where it dries, just like real watercolor. Work light to dark: start with pale washes, then layer darker strokes on top.",
+ 'tool:charcoal':"<b>Charcoal</b> makes grainy, smoky marks that catch the paper's texture. Press lightly for grays, go over areas again for deep blacks. Pair it with Smudge for soft shading.",
+ 'tool:pastel':"<b>Pastel</b> gives soft, chalky color with broken texture. Layer two colors on top of each other and they mix in the eye. It looks great on toned paper.",
+ 'tool:pencil':"<b>Pencil</b> draws thin lines. Use it to sketch shapes before you paint, or to add fine details at the end.",
+ 'tool:ink':"<b>Ink</b> makes smooth, solid lines that get thinner when you move fast. Perfect for outlines in Cartoonish and Pop Art.",
+ 'tool:oil':"<b>Oil</b> paints thick strokes with visible bristle marks, and it picks up a little of the color underneath as you go. Follow the shape of what you're painting with your strokes.",
+ 'tool:marker':"<b>Flat color</b> fills areas with solid, even color, no texture. Great for Pop Art and Cartoonish styles.",
+ 'tool:dots':"<b>Pop dots</b> stamps evenly spaced dots, like old comic-book printing. Use it for shading in Pop Art.",
+ 'tool:facet':"<b>Facets</b> scatters flat, angled shapes, the building blocks of Cubism. Change colors often for that broken-apart look.",
+ 'tool:smudge':"<b>Smudge</b> drags paint like your finger would. Use it to soften edges or blend two colors together. Try short, gentle strokes.",
+ 'tool:blend':"<b>Blend</b> softens and mixes colors where you brush, without adding new paint. Great for smoothing skies and melting a subject's edges into the background.",
+ 'tool:eraser':"<b>Eraser</b> removes paint and shows the paper again. Lower the Strength slider to erase gently and lift out soft highlights.",
+ 'tool:move':"<b>Move subject</b> lets you drag Layer 2 (your subject) to a new spot. Use the Size and Turn sliders on the right to resize or tilt it.",
+ 'tool:heal':"<b>Heal</b> covers a spot by blending in the colors around it. Brush over stray marks, specks or small mistakes and they disappear.",
+ 'tool:touchup':"<b>Paint</b> uses your last paint brush so you can add touch-ups in the Finishing Room. Pick a color first.",
+ undo:"<b>Undo</b> takes back your last action, one step at a time. It remembers your last 20 actions.",
+ redo:"<b>Redo</b> brings back something you just undid.",
+ guideToggle:"<b>Guide on/off</b> hides or shows your faded guide image so you can check how your painting looks on its own. The guide never appears in downloads.",
+ newPainting:"<b>New painting</b> clears everything and gives you a fresh canvas. Your style stays picked. Tap it twice to confirm.",
+ studioStyle:"<b>Style menu</b> switches styles without leaving your canvas. Your painting stays exactly as it is, and only the palette, recommended brushes and tips change. Switch back to your real style before tapping Check my painting.",
+ keepPaper:"<b>Keep my paper</b> stops the paper from changing when you switch styles, so you can compare styles on the same background.",
+ layer1:"<b>Layer 1: Background</b> is for the setting: sky, ground, walls, anything behind your subject.",
+ layer2:"<b>Layer 2: Subject</b> is for your main subject. It sits on top of the background, so you can paint, move and fix it without touching the background.",
+ color:"<b>Color</b> opens a color picker. You can also tap a palette circle, or use Pick color to grab a color from your painting.",
+ pick:"<b>Pick color</b> works like an eyedropper. Tap it, then tap anywhere on your painting to grab that exact color. Great for repainting gaps so they match.",
+ size:"<b>Brush size</b> makes your brush bigger or smaller. Big for skies and backgrounds, small for details.",
+ opacity:"<b>Strength</b> controls how strong the paint is. Low strength makes light, see-through strokes you can build up slowly.",
+ stab:"<b>Steady hand</b> smooths out shaky lines. Turn it up if your lines wobble, down if the brush feels slow to follow you.",
+ wetPaper:"<b>Wet paper</b> makes watercolor strokes softer and blurrier, like painting on damp paper. Leave it off for crisper edges.",
+ addLayer:"<b>Add a second layer</b> gives you a separate layer for your main subject. Paint the background on Layer 1, your subject on Layer 2. You can move and resize the subject, and mistakes won't smudge your background.",
+ show:"<b>Show</b> checkboxes hide or show a layer while you work, so you can focus on one at a time. A hidden layer is left out of Combine.",
+ fillLayer:"<b>Fill with color</b> covers the whole layer with your current color, a quick way to start a sky or background.",
+ clearLayer:"<b>Clear</b> wipes everything off the current layer. Undo brings it back if you change your mind.",
+ subjScale:"<b>Size</b> makes your subject bigger or smaller without repainting it.",
+ subjRot:"<b>Turn</b> tilts your subject left or right.",
+ subjReset:"<b>Reset position</b> puts your subject back where you painted it, at its original size.",
+ combine:"<b>Combine layers</b> joins your subject and background into one painting so you can blend the edges together. You can always tap Separate layers to split them again.",
+ separate:"<b>Separate layers</b> splits your painting back into Layer 1 and Layer 2. Anything you painted after combining stays on the background.",
+ guideUpload:"<b>Upload a photo</b> puts a picture under your canvas as a faded guide to paint over. It stays on your device and never shows in your download.",
+ camera:"<b>Take a selfie</b> uses your camera to snap a photo for a self-portrait guide. The photo stays on your device.",
+ gmode:"<b>Show photo / Show as outline</b> switches your guide between the faded photo and simple trace lines, like a coloring page.",
+ lineDetail:"<b>Outline detail</b> adds or removes lines in the trace outline. Fewer lines are easier for beginners.",
+ outline:"<b>Outline from Mr. Paul</b> draws simple outline shapes of what you type, to paint over like a coloring page.",
+ guideAlpha:"<b>Guide strength</b> makes the guide image lighter or darker on your canvas.",
+ clearGuide:"<b>Remove guide</b> takes the guide image away completely.",
+ paper:"<b>Paper</b> changes the surface under your painting. Watercolor paper has bumpy texture, toned paper is tan, and canvas has a woven look.",
+ check:"<b>Check my painting</b> sends your painting to Mr. Paul. He tells you what's working, circles spots to fix, and gives step-by-step instructions for each one.",
+ clearSpots:"<b>Clear circles</b> removes Mr. Paul's red circles from your painting.",
+ sens:"<b>Clean-up strength</b> sets how big a mark Remove stray marks will clean up. Keep it low to protect texture like charcoal grain.",
+ stray:"<b>Remove stray marks</b> finds tiny, isolated specks and accidental dots and erases them automatically. Undo brings them back.",
+ soften:"<b>Soften slightly</b> gently smooths the whole painting. Use it once or twice at most, so you don't lose detail.",
+ adjust:"<b>Adjust sliders</b> change the whole painting's brightness, contrast, color richness and warmth. Tap Keep changes when you like it, or Cancel.",
+ adjDone:"<b>Keep changes</b> locks in your adjustments. Undo can still take them back.",
+ adjCancel:"<b>Cancel</b> throws away your adjustments and puts the painting back.",
+ compareBefore:"<b>Hold to see before</b> shows your painting as it was when you entered the Finishing Room, for as long as you hold the button.",
+ restore:"<b>Restore original</b> brings back your painting exactly as it was when you entered the Finishing Room. Tap twice to confirm.",
+ pro:"<b>Build my pro prompt</b> has Mr. Paul write instructions for an advanced AI image tool like ChatGPT or Gemini, so it can repaint your picture with more style detail. Then you compare the two.",
+ proDl:"<b>Download for AI</b> saves your painting so you can upload it to ChatGPT or Gemini.",
+ proCopy:"<b>Copy prompt</b> copies Mr. Paul's instructions so you can paste them into ChatGPT or Gemini.",
+ aiUpload:"<b>Upload the AI version</b> brings the picture from ChatGPT or Gemini back here, so you can compare it with yours and get Mr. Paul's notes.",
+ wipe:"<b>Compare slider</b> wipes between your painting and the AI version. Slide it to see what changed.",
+ finalV:"<b>Final version</b> picks what you download and share: your painting, the AI version, or both side by side.",
+ dlFull:"<b>Download full size</b> saves a high-quality picture, best for printing and keeping.",
+ shape:"<b>Square or portrait</b> picks the shape of your share picture. Square fits most social feeds; portrait is taller.",
+ credit:"<b>Credit</b> adds a small line at the bottom with your title, your name and The Art Studio.",
+ dlShare:"<b>Download share size</b> saves a smaller picture sized for Facebook and Instagram."
+};
+S.explained={};
+function explain(key,force){const t=EXPLAIN[key];if(!t)return;if(!force){if(!$('#explainOn').checked||S.explained[key])return}S.explained[key]=1;say(t)}
+function addQ(el,key){if(!el||el.querySelector(':scope > .q'))return;const q=document.createElement('span');q.className='q';q.textContent='?';q.title='What does this do?';
+  q.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();explain(key,true)});el.appendChild(q)}
+function attachQs(root){(root||document).querySelectorAll('[data-explain]').forEach(el=>{const key=el.dataset.explain;
+  if(el.tagName==='BUTTON'||(el.tagName==='LABEL'))addQ(el,key);
+  else if(el.type==='checkbox'||el.type==='radio'){addQ(el.closest('label'),key)}
+  else if(el.type==='range'){const lb=el.previousElementSibling;if(lb&&lb.tagName==='LABEL')addQ(lb,key)}
+  else if(el.tagName==='SELECT'||el.type==='color'){if(!(el.nextElementSibling&&el.nextElementSibling.classList.contains('q'))){const w=document.createElement('span');el.after(w);addQ(w,key)}}})}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-explain]');if(el&&!e.target.classList.contains('q'))explain(el.dataset.explain)},true);
+document.addEventListener('change',e=>{const el=e.target.closest('[data-explain]');if(el)explain(el.dataset.explain)},true);
+/* ---------- layers, separate, new painting, pick color, studio style menu ---------- */
+function resetPainting(w,h){setSize(w||1600,h||1200);Object.assign(S,{layers2:false,merged:false,active:'bg',t:{x:0,y:0,s:1,r:0},pre:null,mergedAt:null,undo:[],redo:[],original:null,spots:[],ai:null,hasGuide:false,compare:false,adjBase:null});
+  guidePhoto=null;$('#photoModes').classList.add('hide');$('#proBox').classList.add('hide');$('#subjScale').value=100;$('#subjRot').value=0;const m=$('input[name=finalV][value=mine]');if(m)m.checked=true}
+$('#addLayerBtn').onclick=()=>{S.layers2=true;setActive('subj');syncUI();
+  say("Layer 2 is ready, and you're painting on it now. Everything you painted before is on <b>Layer 1 (Background)</b>. Switch layers with the two big buttons above the canvas, and use <b>Move subject</b> to drag Layer 2 around.")};
+function separate(){if(!S.merged||!S.pre)return;pushUndo();const bg=clone(S.pre.bg);let changed=0;
+  if(S.mergedAt&&S.mergedAt.width===W){const a=ctxOf(L.merged).getImageData(0,0,W,H).data,b=ctxOf(S.mergedAt).getImageData(0,0,W,H).data,bx=ctxOf(bg),bi=bx.getImageData(0,0,W,H),d=bi.data;
+    for(let k=0;k<a.length;k+=4){if(a[k]!==b[k]||a[k+1]!==b[k+1]||a[k+2]!==b[k+2]||a[k+3]!==b[k+3]){d[k]=a[k];d[k+1]=a[k+1];d[k+2]=a[k+2];d[k+3]=a[k+3];changed++}}bx.putImageData(bi,0,0)}
+  L.bg=bg;L.subj=clone(S.pre.subj);S.t={...S.pre.t};S.layers2=S.pre.layers2;Object.assign(S,{merged:false,active:'subj',pre:null,mergedAt:null,original:null,spots:[]});
+  if(S.step===4)go(3);else{syncUI();requestRender()}
+  say('Your layers are separated again: Layer 1 (Background) and Layer 2 (Subject).'+(changed?' Anything you painted after combining was kept on the background.':''))}
+$$('.sepBtn').forEach(b=>b.onclick=separate);
+let newArm=0;$('#newBtn').onclick=()=>{const b=$('#newBtn');if(!newArm){newArm=1;b.textContent='Tap again to start fresh';setTimeout(()=>{newArm=0;b.textContent='New painting'},3000);return}
+  newArm=0;b.textContent='New painting';resetPainting();go(3);say('Fresh canvas ready. Your style is still '+(S.style?'<b>'+esc(S.style)+'</b>':'not picked yet')+'. Pick a brush and start painting.')};
+function pickAt(p){const c=mk(1,1),x=c.getContext('2d');x.translate(-Math.floor(p.x),-Math.floor(p.y));drawMine(x);const d=x.getImageData(0,0,1,1).data;
+  const hex=rgbToHex([d[0],d[1],d[2]]);S.rgb=[d[0],d[1],d[2]];$('#color').value=hex;S.picking=false;$('#pickBtn').textContent='Pick color';view.style.cursor=S.tool==='move'?'move':'crosshair';
+  say(`Color picked <span style="display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:middle;background:${hex};box-shadow:0 0 0 1px #999"></span>. Your brush now paints with it.`)}
+$('#pickBtn').onclick=()=>{S.picking=!S.picking;$('#pickBtn').textContent=S.picking?'Tap your painting…':'Pick color';view.style.cursor=S.picking?'copy':'crosshair'};
+$('#studioStyle').onchange=e=>{if(e.target.value)pickStyle(e.target.value,true)};
+
 /* ---------- start ---------- */
-setSize(1600,1200);setFace(faceIdx);buildStyleGrid();buildPalette([]);paintBanner();syncUI();render();
+setSize(1600,1200);setFace(faceIdx);buildStyleGrid();buildPalette([]);paintBanner();buildStudioStyleMenu();renderHistory();syncUI();attachQs();render();
 say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to paint in step 1, or jump to step 2 and pick a style. I'll teach you how each style works and set up your brushes. Already have a painting from another AI tool? Upload it in step 1 for a final cleanup.");
 </script>
 </body>
