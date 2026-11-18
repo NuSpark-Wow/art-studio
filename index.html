@@ -246,6 +246,8 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
       <button class="secondary" id="redoBtn" data-explain="redo">↷ Redo</button>
       <button class="secondary s3 s4" id="guideToggle" data-explain="guideToggle"><span id="traceLbl">Tracing: on</span></button>
       <button class="secondary" id="newBtn" data-explain="newPainting">New painting</button>
+      <button class="secondary s3 s4" id="saveBtn" data-explain="savePainting">💾 Save painting</button>
+      <label class="secondary s3 s4" style="display:inline-block;padding:8px 12px;border:1px solid var(--ink2);border-radius:8px;font-weight:600;cursor:pointer;color:var(--ink);background:#fff" data-explain="openPainting">📂 Open a saved painting<input type="file" accept="image/*" id="openPainting" hidden></label>
       <span class="styleSel s3 s4"><label for="studioStyle">Style:</label> <select id="studioStyle" data-explain="studioStyle"></select>
         <label class="note" style="display:inline"><input type="checkbox" id="keepPaper" data-explain="keepPaper"> Keep my paper</label></span>
       <span class="status" id="status"></span>
@@ -974,7 +976,8 @@ let restoreArm=0;$('#restoreBtn').onclick=()=>{const b=$('#restoreBtn');if(!S.or
 /* ---------- download ---------- */
 const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
 function saveBlob(canvas,type,q,name){canvas.toBlob(b=>{if(!b){say('Download failed. Please try again.');return}const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},type,q)}
-function baseName(){return slug($('#dlTitle').value)||'my-painting'}
+function stamp(){const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}_${z(d.getHours())}-${z(d.getMinutes())}-${z(d.getSeconds())}`}
+function baseName(){return (slug($('#dlTitle').value)||'my-painting')+'_'+stamp()}
 function finalChoice(){return S.ai?$('input[name=finalV]:checked').value:'mine'}
 function finalCanvas(){const v=finalChoice();if(v==='ai')return S.ai;if(v!=='both')return compositeCanvas(false);
   const a=compositeCanvas(false),b=S.ai,hh=1200,wa=a.width*hh/a.height,wb=b.width*hh/b.height,gap=40,lab=80,c=mk(wa+wb+gap*3,hh+gap*2+lab),x=c.getContext('2d');
@@ -1134,6 +1137,8 @@ const EXPLAIN={
  'tool:move':"<b>Move subject</b> lets you drag Layer 2 (your subject) to a new spot. Use the Size and Turn sliders on the right to resize or tilt it.",
  'tool:heal':"<b>Heal</b> covers a spot by blending in the colors around it. Brush over stray marks, specks or small mistakes and they disappear.",
  'tool:touchup':"<b>Paint</b> uses your last paint brush so you can add touch-ups in the Finishing Room. Pick a color first.",
+ savePainting:"<b>Save painting</b> downloads your painting as it looks right now. Every save gets its own name with the date and time, so nothing is ever overwritten. Save before trying something big, then use <b>Open a saved painting</b> to pick up where you left off.",
+ openPainting:"<b>Open a saved painting</b> loads a painting you saved earlier onto your canvas (Layer 1), so you can keep painting on it.",
  undo:"<b>Undo</b> takes back your last action, one step at a time. It remembers your last 20 actions.",
  redo:"<b>Redo</b> brings back something you just undid.",
  guideToggle:"<b>Tracing on/off</b> hides or shows the picture you're tracing, so you can check how your painting looks on its own. The tracing picture never appears in downloads.",
@@ -1255,7 +1260,7 @@ $('#psEditBtn').onclick=async()=>{const v=psCur();if(!v){say('Upload a photo fir
   try{const j=await api('edit',{image:psJpeg(v.canvas),change:ch,style:PS.style||psStyleName()});t.remove();if(!j.prompt){say(esc(j.note||'Mr. Paul could not write that change. Try describing it differently.'));return}
     PS.mode='edit';psShowSteps('Change: '+ch,j.prompt);say('Your change prompt is ready. Use the same 5 steps with the picture shown on the left.')}
   catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
-$('#psDl').onclick=()=>{const v=psCur();if(!v)return;saveBlob(v.canvas,'image/jpeg',.92,'photo-styling-'+slug(v.label)+'.jpg');say('Picture saved. Next, tap <b>Copy prompt</b>.')};
+$('#psDl').onclick=()=>{const v=psCur();if(!v)return;saveBlob(v.canvas,'image/jpeg',.92,'photo-styling-'+slug(v.label)+'_'+stamp()+'.jpg');say('Picture saved. Next, tap <b>Copy prompt</b>.')};
 $('#psCopy').onclick=async()=>{const ta=$('#psPrompt');try{await navigator.clipboard.writeText(ta.value)}catch(e){ta.select();document.execCommand('copy')}say('Prompt copied. Open ChatGPT or Gemini, upload the picture, and paste the prompt.')};
 $('#psResult').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
   try{const c=await psLoad(f);const n=PS.versions.filter(x=>x.ai).length+1;psAdd(c,(PS.mode==='edit'?'Change ':'Painting ')+n,true);$('#psSteps').classList.add('hide');$('#psChange').value='';
@@ -1263,13 +1268,22 @@ $('#psResult').onchange=async e=>{const f=e.target.files[0];e.target.value='';if
 function psFitTo(canvas){const k=Math.min(1,2400/Math.max(canvas.width,canvas.height));return{w:Math.round(canvas.width*k),h:Math.round(canvas.height*k)}}
 $('#psTrace').onclick=()=>{const v=psCur();if(!v)return;go(3);setGuidePhoto(v.canvas);say('Your styled picture is now your tracing picture. Use <b>How much of the picture shows?</b> to adjust it, then paint over it.')};
 let psArm=0;$('#psPaintOn').onclick=()=>{const v=psCur();if(!v)return;const b=$('#psPaintOn');
-  if(!psArm){psArm=1;b.textContent='Tap again: replaces your canvas';setTimeout(()=>{psArm=0;b.textContent='Paint on it'},3000);return}
-  psArm=0;b.textContent='Paint on it';const {w,h}=psFitTo(v.canvas);resetPainting(w,h);S.uploaded=true;S.aiMade=!!v.ai;L.bg.getContext('2d').drawImage(v.canvas,0,0,w,h);go(3);
+  if(!psArm){psArm=1;b.textContent='Tap again: replaces your canvas';say('Heads up: this replaces what\'s on your canvas. Want to keep it? Go to the studio and tap <b>💾 Save painting</b> first.');setTimeout(()=>{psArm=0;b.textContent='Paint on it';attachQs(b.parentNode)},3000);return}
+  psArm=0;b.textContent='Paint on it';attachQs(b.parentNode);const {w,h}=psFitTo(v.canvas);resetPainting(w,h);S.uploaded=true;S.aiMade=!!v.ai;L.bg.getContext('2d').drawImage(v.canvas,0,0,w,h);go(3);
   say('Your styled picture is now your canvas on Layer 1. Add your own brushstrokes, or tap <b>Add a second layer</b> to paint new things on top.')};
-$('#psFinish').onclick=()=>{const v=psCur();if(!v)return;const {w,h}=psFitTo(v.canvas);resetPainting(w,h);S.uploaded=true;S.aiMade=!!v.ai;
+let psFinArm=0;$('#psFinish').onclick=()=>{const v=psCur();if(!v)return;const fb=$('#psFinish');
+  if(!psFinArm&&(S.handPainted||S.merged)){psFinArm=1;fb.textContent='Tap again: replaces your canvas';say('Heads up: this replaces what\'s on your canvas. Want to keep it? Go to the studio and tap <b>💾 Save painting</b> first.');setTimeout(()=>{psFinArm=0;fb.innerHTML='Finish &amp; download';attachQs(fb.parentNode)},3000);return}
+  psFinArm=0;fb.innerHTML='Finish &amp; download';attachQs(fb.parentNode);const {w,h}=psFitTo(v.canvas);resetPainting(w,h);S.uploaded=true;S.aiMade=!!v.ai;
   L.merged=mk(w,h);L.merged.getContext('2d').drawImage(v.canvas,0,0,w,h);S.mergedAt=clone(L.merged);S.merged=true;S.active='merged';S.original=clone(L.merged);go(4);
   say('Your picture is in the Finishing Room. Tap <b>Check my painting</b> for Mr. Paul\'s notes, or go straight to Download.')};
 
+/* ---------- save & open paintings ---------- */
+$('#saveBtn').onclick=()=>{const name=baseName()+'-saved.png';saveBlob(compositeCanvas(false),'image/png',1,name);
+  say(`Saved as <b>${esc(name)}</b> in your downloads. To keep working on it later, tap <b>📂 Open a saved painting</b>.`)};
+$('#openPainting').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const img=await loadImageFile(f);const k=Math.min(1,2400/Math.max(img.width,img.height));const w=Math.round(img.width*k),h=Math.round(img.height*k);
+    resetPainting(w,h);S.uploaded=true;L.bg.getContext('2d').drawImage(img,0,0,w,h);go(3);
+    say('Your saved painting is back on the canvas (Layer 1). Keep painting, or tap <b>Add a second layer</b> to add new things on top.')}catch(err){say(esc(err.message))}};
 /* ---------- start ---------- */
 setSize(1600,1200);setFace(faceIdx);buildStyleGrid();buildPalette([]);paintBanner();buildStudioStyleMenu();renderHistory();psBuildStyles();syncUI();attachQs();render();
 say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to paint in step 1, or jump to step 2 and pick a style. I'll teach you how each style works and set up your brushes. Already have a painting from another AI tool? Upload it in step 1 for a final cleanup.");
