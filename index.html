@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Art Studio · NuSparkLearnWow</title>
+<style>
+:root{
+  --ink:#1f3b4d; --ink2:#2e5670; --paper:#fbf7ef; --cream:#f3ead8; --line:#e2d6bf;
+  --accent:#c8553d; --accent2:#e9a23b; --text:#2a2a2a; --muted:#6b6457; --ok:#3f7d4e;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--paper)}
+header{background:var(--ink);color:#fff;padding:14px 18px 10px}
+.titlebar{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:30px;margin:0;letter-spacing:.5px}
+.tag{opacity:.85;font-size:15px}
+.banner{display:flex;gap:10px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
+.tile{flex:0 0 auto;text-align:center}
+.tile canvas{display:block;width:170px;height:110px;border-radius:8px;border:2px solid rgba(255,255,255,.25);background:#fff}
+.tile span{display:block;font-size:12px;margin-top:4px;opacity:.9}
+.mobile-note{font-size:12px;opacity:.75;margin-top:6px}
+nav.steps{display:flex;gap:6px;padding:10px 18px;background:var(--cream);border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav.steps button{border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;border-radius:20px;font-weight:600;cursor:pointer;font-size:14px}
+nav.steps button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+nav.steps button .n{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;background:var(--accent2);color:#fff;font-size:12px;margin-right:6px;text-align:center}
+.layout{display:grid;grid-template-columns:1fr 320px;gap:14px;padding:14px 18px;align-items:start}
+.panel{display:none}.panel.on{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-family:Georgia,serif;color:var(--ink);margin:0 0 8px;font-size:21px}
+.card.alt{background:var(--cream)}
+.ex{font-size:13px;color:var(--muted);margin:4px 0 6px}
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font:inherit;font-size:15px;background:#fff}
+button,.btn{font:inherit}
+.btn,button.primary{display:inline-block;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;margin-top:8px}
+button.secondary{background:#fff;color:var(--ink);border:1px solid var(--ink2);border-radius:8px;padding:8px 12px;font-weight:600;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.styles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.style{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;cursor:pointer;text-align:left}
+.style b{display:block;color:var(--ink);font-size:15px}
+.style small{color:var(--muted)}
+.style .pt{display:inline-block;font-size:11px;background:#e6eef3;color:var(--ink2);border-radius:10px;padding:1px 7px;margin-top:4px}
+.style.on{outline:3px solid var(--accent2);background:#fffaf0}
+.lesson{background:#fffaf0;border-left:5px solid var(--accent2);padding:12px 14px;border-radius:8px;margin-bottom:12px;display:none}
+.lesson h3{margin:0 0 6px;font-family:Georgia,serif;color:var(--ink)}
+.lesson ul{margin:6px 0 6px 18px;padding:0}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #bbb;cursor:pointer}
+.ideas .idea{border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0;background:#fffdf8}
+/* work area */
+.work{display:grid;grid-template-columns:120px 1fr 250px;gap:10px;align-items:start}
+.tools{display:flex;flex-direction:column;gap:5px}
+.tools button{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 6px;font-size:13px;cursor:pointer;text-align:left;position:relative}
+.tools button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tools button .rec{position:absolute;right:4px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--accent2)}
+.tools h4,.props h4{margin:8px 0 2px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.canvasWrap{background:#ddd5c4;border-radius:10px;padding:10px;display:flex;justify-content:center;align-items:center;min-height:300px}
+#view{display:block;max-width:100%;max-height:calc(100vh - 230px);background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.25);touch-action:none;cursor:crosshair}
+.topbar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.topbar .status{font-size:13px;color:var(--muted);margin-left:6px}
+.props{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.props label{display:block;margin:6px 0 2px}
+.props input[type=range]{width:100%}
+.props .grp{border-top:1px solid var(--line);padding-top:6px;margin-top:8px}
+.props .grp:first-child{border-top:none;margin-top:0;padding-top:0}
+.props select{width:100%;padding:5px;border-radius:6px;border:1px solid var(--line)}
+.props button{margin:3px 3px 3px 0}
+.layerrow{display:flex;align-items:center;gap:6px;margin:3px 0}
+.layerrow label{margin:0;display:flex;gap:6px;align-items:center;cursor:pointer}
+.hide{display:none!important}
+.note{font-size:12px;color:var(--muted)}
+/* coach */
+aside.coach{background:#fff;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;max-height:calc(100vh - 150px);position:sticky;top:10px}
+.coachHead{background:var(--ink2);color:#fff;padding:10px 12px;border-radius:12px 12px 0 0;display:flex;gap:10px;align-items:center}
+.coachHead .face{width:52px;height:52px;border-radius:50%;background:#f6e3b4;overflow:hidden;flex:0 0 auto;border:2px solid rgba(255,255,255,.6)}.coachHead .face svg{width:100%;height:100%;display:block}
+.coachHead b{display:block}.coachHead small{opacity:.85}
+.msgs{padding:10px;overflow-y:auto;flex:1;font-size:14px;line-height:1.45}
+.msg{background:var(--cream);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+.msg.me{background:#e6eef3;margin-left:30px}
+.msg h4{margin:0 0 4px;color:var(--ink);font-size:14px}
+.msg ul{margin:4px 0 4px 18px;padding:0}
+.ask{border-top:1px solid var(--line);padding:10px}
+.ask textarea{font-size:14px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
+.msg .spin{border-color:var(--ink);border-top-color:transparent}
+@keyframes sp{to{transform:rotate(360deg)}}
+footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+@media (max-width:1100px){.layout{grid-template-columns:1fr}aside.coach{position:static;max-height:420px}}
+@media (max-width:820px){.work{grid-template-columns:1fr}.tools{flex-direction:row;flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header>
+  <div class="titlebar">
+    <h1>The Art Studio</h1>
+    <div class="tag">Learn the great styles. Paint your own masterpiece. With Mr. Paul as your art teacher.</div>
+  </div>
+  <div class="banner" id="banner"></div>
+  <div class="mobile-note">Best on a tablet or computer. Not recommended for mobile.</div>
+</header>
+
+<nav class="steps" id="steps">
+  <button data-step="1" class="on"><span class="n">1</span>Your Vision</button>
+  <button data-step="2"><span class="n">2</span>Pick a Style</button>
+  <button data-step="3"><span class="n">3</span>Paint</button>
+  <button data-step="4"><span class="n">4</span>Finishing Room</button>
+  <button data-step="5"><span class="n">5</span>Download</button>
+</nav>
+
+<div class="layout">
+<main>
+  <!-- STEP 1 -->
+  <section class="panel on" id="p1">
+    <div class="card">
+      <h2>Describe your vision</h2>
+      <p>Tell Mr. Paul what you want to paint. He will suggest styles, where to place things, colors, and the order to paint in.</p>
+      <p class="ex">Example: my golden retriever running on a beach at sunset</p>
+      <textarea id="visionText" rows="3" maxlength="600"></textarea>
+      <div class="row">
+        <button class="primary" id="visionBtn">Get Mr. Paul's ideas</button>
+        <button class="secondary" data-go="2" style="margin-top:8px">Skip, just pick a style →</button>
+      </div>
+      <div class="ideas" id="visionOut"></div>
+    </div>
+    <div class="card">
+      <h2>Paint a self-portrait</h2>
+      <p>Use a photo of your face as a faded guide, or turn it into simple lines to paint over. Mr. Paul teaches the classic face proportions.</p>
+      <button class="primary" id="portraitStart">Start a self-portrait</button>
+      <div class="note" style="margin-top:6px">Your photo stays on your device. It is never uploaded.</div>
+    </div>
+    <div class="card alt">
+      <h2>Already have a painting?</h2>
+      <p>Made one in ChatGPT, Gemini or another AI tool? Upload it for a final cleanup and share-ready downloads.</p>
+      <label class="btn">Upload a painting<input type="file" accept="image/*" id="uploadPainting" hidden></label>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="panel" id="p2">
+    <div class="card">
+      <h2>Pick a style</h2>
+      <p>Choose a style and Mr. Paul will teach you what makes it special. The studio sets up the right brushes, colors and paper for you.</p>
+      <div class="lesson" id="lesson"></div>
+      <div class="styles" id="styleGrid"></div>
+      <div class="card alt" style="margin-top:12px">
+        <b>Choose your own style</b>
+        <p class="ex">Example: Japanese woodblock, Art Deco poster, stained glass</p>
+        <div class="row"><input type="text" id="customStyle" maxlength="60" style="flex:1"><button class="primary" id="customBtn" style="margin-top:0">Teach me</button></div>
+      </div>
+      <button class="primary" data-go="3">Start painting →</button>
+    </div>
+  </section>
+
+  <!-- STEPS 3-5: WORK AREA -->
+  <section class="panel" id="pWork">
+    <div class="topbar">
+      <button class="secondary" id="undoBtn" title="Undo">↶ Undo</button>
+      <button class="secondary" id="redoBtn" title="Redo">↷ Redo</button>
+      <button class="secondary s3 s4" id="guideToggle">Guide: on</button>
+      <span class="status" id="status"></span>
+    </div>
+    <div class="work">
+      <div class="tools" id="tools"></div>
+      <div class="canvasWrap"><canvas id="view"></canvas></div>
+      <div class="props">
+        <!-- PAINT PROPS -->
+        <div class="s3">
+          <div class="grp">
+            <h4>Color</h4>
+            <div class="row"><input type="color" id="color" value="#2e5670"><span class="note">or tap a palette color</span></div>
+            <div class="swatches" id="palette"></div>
+            <label>Brush size <span id="sizeVal"></span></label><input type="range" id="size" min="2" max="140" value="30">
+            <label>Strength <span id="opVal"></span></label><input type="range" id="opacity" min="5" max="100" value="80">
+            <label>Steady hand <span class="note">(smooths shaky lines)</span></label><input type="range" id="stab" min="0" max="90" value="30">
+            <label class="wetOnly"><input type="checkbox" id="wetPaper"> Wet paper (softer, blooming edges)</label>
+          </div>
+          <div class="grp" id="layerGrp">
+            <h4>Layers</h4>
+            <div class="layerrow"><label><input type="radio" name="layer" value="subj"> Subject (front)</label><label><input type="checkbox" id="showSubj" checked>show</label></div>
+            <div class="layerrow"><label><input type="radio" name="layer" value="bg" checked> Background</label><label><input type="checkbox" id="showBg" checked>show</label></div>
+            <button class="secondary" id="fillLayer">Fill layer with color</button>
+            <button class="secondary" id="clearLayer">Clear layer</button>
+            <div id="subjCtl">
+              <h4>Place the subject</h4>
+              <label>Size</label><input type="range" id="subjScale" min="20" max="250" value="100">
+              <label>Turn</label><input type="range" id="subjRot" min="-180" max="180" value="0">
+              <button class="secondary" id="subjReset">Reset position</button>
+              <div class="note">Use the Move tool to drag the subject.</div>
+            </div>
+            <button class="primary" id="combineBtn">Combine layers →</button>
+            <div class="note">Combining joins subject and background into one painting so you can blend them together.</div>
+          </div>
+          <div class="grp mergedNote hide">
+            <h4>Painting</h4>
+            <div class="note">Layers are combined. Keep blending and painting, or use Undo to separate them again.</div>
+            <button class="primary" data-go="4">Go to Finishing Room →</button>
+          </div>
+          <div class="grp">
+            <h4>Guide image</h4>
+            <div class="note">A faded picture to paint over. It never shows in your download.</div>
+            <label class="btn" style="padding:7px 10px;font-size:13px">Upload a photo<input type="file" accept="image/*" id="guideUpload" hidden></label>
+            <button class="secondary" id="cameraBtn">Take a selfie</button>
+            <div id="photoModes" class="hide">
+              <label><input type="radio" name="gmode" value="photo" checked> Show photo</label>
+              <label><input type="radio" name="gmode" value="lines"> Show as outline (trace lines)</label>
+              <label>Outline detail</label><input type="range" id="lineDetail" min="1" max="10" value="5">
+            </div>
+            <div class="note">Photos stay on your device and are never uploaded.</div>
+            <p class="ex">Or get a simple outline. Example: a sitting dog</p>
+            <div class="row"><input type="text" id="outlineText" maxlength="80" style="flex:1"></div>
+            <button class="secondary" id="outlineBtn">Outline from Mr. Paul</button>
+            <label>Guide strength</label><input type="range" id="guideAlpha" min="5" max="70" value="30">
+            <button class="secondary" id="clearGuide">Remove guide</button>
+          </div>
+          <div class="grp">
+            <h4>Paper</h4>
+            <select id="paper">
+              <option value="cold">Cold-press watercolor paper</option>
+              <option value="smooth">Smooth white</option>
+              <option value="toned">Toned tan paper</option>
+              <option value="canvas">Canvas</option>
+            </select>
+          </div>
+        </div>
+        <!-- FINISHING PROPS -->
+        <div class="s4">
+          <div class="grp needMerge hide">
+            <h4>One step first</h4>
+            <div class="note">Combine your layers so the Finishing Room can work on the whole painting.</div>
+            <button class="primary" id="combineBtn2">Combine layers now</button>
+          </div>
+          <div class="grp">
+            <h4>Mr. Paul's check</h4>
+            <button class="primary" id="checkBtn">Check my painting</button>
+            <div class="note">Mr. Paul circles spots to fix. Locations are approximate.</div>
+            <button class="secondary hide" id="clearSpots">Clear circles</button>
+          </div>
+          <div class="grp">
+            <h4>Quick fixes</h4>
+            <label>Clean-up strength <span id="sensVal">3</span></label>
+            <input type="range" id="sens" min="1" max="10" value="3">
+            <div class="note">Low keeps texture like charcoal grain and Pop Art dots. High removes bigger marks.</div>
+            <button class="secondary" id="strayBtn">Remove stray marks</button>
+            <button class="secondary" id="softenBtn">Soften slightly</button>
+          </div>
+          <div class="grp">
+            <h4>Adjust</h4>
+            <label>Brightness</label><input type="range" class="adj" id="aBright" min="-60" max="60" value="0">
+            <label>Contrast</label><input type="range" class="adj" id="aContrast" min="-60" max="60" value="0">
+            <label>Color richness</label><input type="range" class="adj" id="aSat" min="-100" max="100" value="0">
+            <label>Warm / cool</label><input type="range" class="adj" id="aWarm" min="-50" max="50" value="0">
+            <button class="secondary" id="adjDone">Keep changes</button>
+            <button class="secondary" id="adjCancel">Cancel</button>
+          </div>
+          <div class="grp">
+            <h4>Safety switches</h4>
+            <button class="secondary" id="compareBtn">Hold to see before</button>
+            <button class="secondary" id="restoreBtn">Restore original</button>
+          </div>
+          <button class="primary" data-go="5">Go to Download →</button>
+        </div>
+        <!-- DOWNLOAD PROPS -->
+        <div class="s5">
+          <div class="grp">
+            <h4>Sign your painting</h4>
+            <p class="ex">Example: Sunset Run</p>
+            <label>Title</label><input type="text" id="dlTitle" maxlength="60">
+            <label>Artist name</label><input type="text" id="dlName" maxlength="40">
+          </div>
+          <div class="grp">
+            <h4>Full size</h4>
+            <div class="note">High quality PNG, best for printing and keeping.</div>
+            <button class="primary" id="dlFull">Download full size</button>
+          </div>
+          <div class="grp">
+            <h4>Share size</h4>
+            <div class="note">Smaller file sized for Facebook and Instagram.</div>
+            <label><input type="radio" name="shape" value="square" checked> Square (1080 × 1080)</label>
+            <label><input type="radio" name="shape" value="portrait"> Portrait (1080 × 1350)</label>
+            <label><input type="checkbox" id="credit" checked> Add a small "Painted in The Art Studio" credit</label>
+            <button class="primary" id="dlShare">Download share size</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<aside class="coach">
+  <div class="coachHead"><div class="face" id="face"></div><div><b>Mr. Paul</b><small>Your art teacher</small></div></div>
+  <div class="msgs" id="msgs"></div>
+  <div class="ask">
+    <div class="note" style="margin-bottom:4px">Ask Mr. Paul anything about art or your painting</div>
+    <textarea id="askText" rows="2" maxlength="500"></textarea>
+    <div class="row" style="justify-content:space-between">
+      <label class="note"><input type="checkbox" id="askImg"> include my painting</label>
+      <button class="primary" id="askBtn" style="margin-top:6px">Ask</button>
+    </div>
+  </div>
+</aside>
+</div>
+
+<div id="camModal" class="hide" style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:50">
+  <div style="background:#fff;border-radius:12px;padding:14px;max-width:560px;width:92%;text-align:center">
+    <video id="camVideo" autoplay playsinline muted style="width:100%;border-radius:8px;transform:scaleX(-1);background:#000"></video>
+    <div class="note" style="margin:6px 0">Face the camera with even light. Your photo stays on this device.</div>
+    <button class="primary" id="camSnap">Take photo</button> <button class="secondary" id="camCancel">Cancel</button>
+  </div>
+</div>
+<footer>
+  The Art Studio by NuSpark Publishing · NuSparkLearnWow.com · Best on a tablet or computer. Not recommended for mobile.<br>
+  Mr. Paul's lessons and feedback are AI-generated. Circled spots are approximate. Photos, guide images and downloads stay on your device. Only your painting is sent to Mr. Paul, and only when you tap "Check my painting" or include it in a question.
+</footer>
+
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const mk=(w,h)=>{const c=document.createElement('canvas');c.width=Math.max(1,w|0);c.height=Math.max(1,h|0);return c};
+const ctxOf=c=>c.getContext('2d',{willReadFrequently:true});
+const clone=c=>{const n=mk(c.width,c.height);n.getContext('2d').drawImage(c,0,0);return n};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function hexToRgb(h){h=String(h).replace('#','');if(h.length===3)h=h.split('').map(x=>x+x).join('');const n=parseInt(h,16)||0;return[n>>16&255,n>>8&255,n&255]}
+const rgbToHex=r=>'#'+r.map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
+const rgba=(c,a)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const jit=(c,a)=>{const j=(Math.random()*2-1)*a;return c.map(v=>clamp(v+j,0,255))};
+function blurCanvas(src,k){k=Math.max(1,k);const w=src.width,h=src.height;
+  const s1=mk(Math.max(1,Math.round(w/Math.sqrt(k))),Math.max(1,Math.round(h/Math.sqrt(k))));
+  const s2=mk(Math.max(1,Math.round(w/k)),Math.max(1,Math.round(h/k)));
+  let x=s1.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(src,0,0,s1.width,s1.height);
+  x=s2.getContext('2d');x.imageSmoothingQuality='high';x.drawImage(s1,0,0,s2.width,s2.height);
+  const o=mk(w,h),ox=o.getContext('2d');ox.imageSmoothingQuality='high';ox.drawImage(s2,0,0,w,h);return o}
+
+/* ---------- paper grain (tiling noise) ---------- */
+const G=256, grain=new Float32Array(G*G);
+(function(){const n=16,s=G/n,c=[];for(let i=0;i<n*n;i++)c.push(Math.random());
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){const gx=x/s,gy=y/s,x0=gx|0,y0=gy|0,fx=gx-x0,fy=gy-y0;
+    const X0=x0%n,X1=(x0+1)%n,Y0=y0%n,Y1=(y0+1)%n;
+    const v=(c[Y0*n+X0]*(1-fx)+c[Y0*n+X1]*fx)*(1-fy)+(c[Y1*n+X0]*(1-fx)+c[Y1*n+X1]*fx)*fy;
+    grain[y*G+x]=clamp(0.45*v+0.55*Math.random(),0,1);}})();
+const grainAt=(x,y)=>grain[((y|0)&255)*G+((x|0)&255)];
+
+/* ---------- styles (Mr. Paul's lessons) ---------- */
+const STYLES={
+"Renaissance":{era:"Europe, about 1400–1600",about:"Artists rediscovered ancient Greek and Roman ideas and aimed for balance, realism and ideal beauty.",artists:["Leonardo da Vinci","Michelangelo","Raphael"],tech:["Linear perspective that makes flat walls look deep","Chiaroscuro: soft light and shadow that model form","Sfumato: edges that melt gently into each other","Calm, balanced, often triangular compositions"],tip:"Pick one light source and keep every shadow on the opposite side.",brushes:["oil","blend","pencil"],palette:["#5b3a1e","#8a5a2b","#c49a6c","#e8d5b0","#3d4a3a","#7a2e1f"],paper:"canvas"},
+"Baroque":{era:"Europe, about 1600–1750",about:"Drama, movement and emotion, often with figures lit like actors on a dark stage.",artists:["Caravaggio","Rembrandt","Peter Paul Rubens"],tech:["Tenebrism: strong light against deep darkness","Diagonal compositions full of motion","Rich, warm colors and glowing highlights"],tip:"Start with a dark background, then build your subject up toward the light.",brushes:["oil","blend","smudge"],palette:["#1a1410","#4a2c1a","#8b4513","#d4a24c","#f1d9a7","#6e1414"],paper:"canvas"},
+"Romanticism":{era:"Europe, late 1700s–mid 1800s",about:"Painters celebrated feeling, imagination and the awe-inspiring power of nature.",artists:["J.M.W. Turner","Caspar David Friedrich","Eugène Delacroix"],tech:["Dramatic skies, storms and sweeping landscapes","Glowing, atmospheric light","Small figures against vast nature to show its power"],tip:"Make the sky the star. Let it take up most of the canvas.",brushes:["oil","watercolor","blend"],palette:["#2b3a55","#5d7299","#e3b46a","#c0583a","#f4e6c8","#3b2f2a"],paper:"canvas"},
+"Realism":{era:"France, mid 1800s",about:"Artists painted ordinary people and everyday life truthfully, without making it look ideal.",artists:["Gustave Courbet","Jean-François Millet","Rosa Bonheur"],tech:["Careful observation of real light and texture","Earthy, natural colors","Everyday subjects shown honestly"],tip:"Paint what you actually see, not what you think something looks like.",brushes:["oil","pencil","blend"],palette:["#4b4237","#7d6b54","#a89070","#d9c9a8","#55603f","#2f3a45"],paper:"canvas"},
+"Impressionism":{era:"France, 1870s–1880s",about:"Painters worked outdoors to capture a fleeting moment of light, using quick visible brushstrokes.",artists:["Claude Monet","Pierre-Auguste Renoir","Berthe Morisot"],tech:["Short, broken dabs of color","Colors placed side by side to mix in the eye","Shadows painted with blues and purples, not black","Soft edges and shimmering light"],tip:"Use short dabs and skip black. Paint the light, not the outline.",brushes:["oil","pastel","watercolor"],palette:["#4a7ab5","#8fb8de","#f2d06b","#e98a6b","#9cc58f","#b48ac9"],paper:"canvas"},
+"Post-Impressionism":{era:"Europe, 1880s–early 1900s",about:"Artists kept Impressionism's bright color but added structure, symbolism and strong personal expression.",artists:["Vincent van Gogh","Paul Cézanne","Georges Seurat"],tech:["Bold, expressive color","Thick, rhythmic, directional strokes","Simplified shapes and strong outlines","Pointillism: tiny dots of pure color (Seurat)"],tip:"Let every stroke follow the shape of what you are painting, like van Gogh's swirling skies.",brushes:["oil","dots","marker"],palette:["#1f3f8a","#3e7cc0","#f2c230","#e0682b","#3f8f4a","#f4ead0"],paper:"canvas"},
+"Cubism":{era:"Paris, about 1907–1920s",about:"Artists broke subjects into geometric pieces and showed several viewpoints at once.",artists:["Pablo Picasso","Georges Braque","Juan Gris"],tech:["Faceted, flat geometric shapes","Several angles of one object shown together","Muted browns, grays and greens in early works"],tip:"Draw the front and the side of your subject at the same time, then break it into shapes.",brushes:["facet","marker","pencil"],palette:["#6b5a45","#a08b6c","#c9b896","#55606b","#7d8a6a","#2e2a26"],paper:"toned"},
+"Surrealism":{era:"Europe, from the 1920s",about:"Artists painted dreamlike scenes and unexpected combinations, inspired by the unconscious mind.",artists:["Salvador Dalí","René Magritte","Max Ernst"],tech:["Realistic painting of impossible scenes","Strange combinations of everyday objects","Deep, empty dreamlike spaces"],tip:"Paint something ordinary very realistically, then put it somewhere it could never be.",brushes:["oil","blend","ink"],palette:["#2d4f7c","#87a9c9","#e8c27a","#c4643f","#f2ecd8","#3c3c3c"],paper:"smooth"},
+"Abstract Expressionism":{era:"New York, 1940s–1950s",about:"Painters used gesture, color and scale to express emotion, without painting recognizable things.",artists:["Jackson Pollock","Mark Rothko","Willem de Kooning"],tech:["Energetic, gestural marks","Large fields of color","The act of painting becomes the subject"],tip:"Choose a feeling first, then paint the feeling with big, confident marks.",brushes:["oil","marker","ink"],palette:["#1b1b1b","#c9302c","#f0b429","#2e6fa7","#f4f1e8","#6b4f9a"],paper:"canvas"},
+"Pop Art":{era:"UK and US, mid 1950s–1960s",about:"Artists borrowed images from ads, comics and everyday products, using bold color and graphic style.",artists:["Andy Warhol","Roy Lichtenstein","Richard Hamilton"],tech:["Flat, bright colors","Thick black outlines","Ben-Day dots like old comic printing","Repetition and everyday objects"],tip:"Outline in black, fill with flat color, then add dots for shading.",brushes:["marker","dots","ink"],palette:["#111111","#e63946","#ffd60a","#1d70b8","#ff8fab","#ffffff"],paper:"smooth"},
+"Watercolor":{era:"A medium used for centuries",about:"Transparent paint mixed with water. The white paper glows through and becomes your light.",artists:["Winslow Homer","John Singer Sargent","Albrecht Dürer"],tech:["Light washes first, darker layers on top","Leave white paper for highlights","Wet-into-wet for soft blooms","Darker edges where the paint dries"],tip:"Work light to dark and save your whites. You can't paint white back in.",brushes:["watercolor","pencil","blend"],palette:["#2f6690","#81c3d7","#d9a441","#c1502e","#6a994e","#5e3c58"],paper:"cold"},
+"Oil Painting":{era:"Refined in the 1400s and still used today",about:"Slow-drying, rich paint that can be blended smoothly or laid on thick.",artists:["Jan van Eyck","Rembrandt","Georgia O'Keeffe"],tech:["Blending colors right on the canvas","Thin glazes or thick impasto strokes","Rich, deep color"],tip:"Block in big shapes first, then refine. Let colors mix on the canvas.",brushes:["oil","blend","smudge"],palette:["#264653","#2a9d8f","#e9c46a","#f4a261","#e76f51","#f6efe0"],paper:"canvas"},
+"Charcoal (Black & White)":{era:"One of the oldest drawing materials",about:"Burnt wood that makes rich blacks and soft grays. It is all about light, shadow and value.",artists:["Käthe Kollwitz","John Singer Sargent","Georges Seurat (conté crayon)"],tech:["Build value from light gray to deep black","Smudge with a finger for smooth tones","Lift out highlights with an eraser","Let the paper's grain show through"],tip:"Squint at your subject to see the big light and dark shapes, then draw those first.",brushes:["charcoal","smudge","eraser"],palette:["#111111","#333333","#555555","#888888","#bbbbbb","#ffffff"],paper:"toned"},
+"Pastel":{era:"Popular since the 1700s",about:"Sticks of pure pigment that give soft, chalky, vibrant color.",artists:["Edgar Degas","Mary Cassatt","Rosalba Carriera"],tech:["Layer and blend soft colors","Let some strokes stay broken and textured","Toned paper makes colors pop"],tip:"Use the side of the pastel for broad areas, the tip for details.",brushes:["pastel","smudge","blend"],palette:["#f4a7b9","#a0c4ff","#caffbf","#fdffb6","#ffc6a5","#bdb2ff"],paper:"toned"},
+"Cartoonish":{era:"Comics, animation and illustration",about:"Simplified shapes, bold outlines and exaggeration that make characters friendly and expressive.",artists:["Charles M. Schulz","Bill Watterson","Hergé"],tech:["Simple shapes with clean outlines","Exaggerated features and expressions","Flat, cheerful colors"],tip:"Start with simple circles and ovals, then add a clean outline on top.",brushes:["ink","marker","pencil"],palette:["#222222","#ff6b6b","#ffd93d","#6bcB77","#4d96ff","#ffffff"],paper:"smooth"}
+};
+
+/* ---------- state ---------- */
+let W=1600,H=1200;
+const S={step:1,tool:'watercolor',rgb:[46,86,112],size:30,op:.8,stab:.3,wetPaper:false,active:'bg',merged:false,
+  showBg:true,showSubj:true,t:{x:0,y:0,s:1,r:0},guideOn:true,guideAlpha:.3,hasGuide:false,paper:'cold',
+  style:null,vision:'',undo:[],redo:[],original:null,compare:false,spots:[],adjBase:null,lastPaintTool:'oil',recommended:[]};
+const L={bg:null,subj:null,merged:null,wet:null,guide:null,paper:null};
+const view=$('#view'); let D;
+function setSize(w,h){W=w;H=h;view.width=W;view.height=H;D=view.getContext('2d');
+  L.bg=mk(W,H);L.subj=mk(W,H);L.wet=mk(W,H);L.guide=mk(W,H);L.merged=null;makePaper();}
+
+function makePaper(){const p=mk(W,H),x=p.getContext('2d');
+  const base={cold:[251,248,241],smooth:[255,255,255],toned:[217,205,184],canvas:[243,238,226]}[S.paper]||[255,255,255];
+  const amp={cold:26,smooth:4,toned:18,canvas:16}[S.paper]||0;
+  const img=x.createImageData(W,H),d=img.data;
+  for(let y=0;y<H;y++)for(let i=0;i<W;i++){const k=(y*W+i)*4;let v=(grainAt(i,y)-.5)*amp;
+    if(S.paper==='canvas'){v+=(((i%6)<3)!==((y%6)<3)?5:-5)}
+    d[k]=base[0]+v;d[k+1]=base[1]+v;d[k+2]=base[2]+v;d[k+3]=255}
+  x.putImageData(img,0,0);L.paper=p;requestRender();}
+
+/* ---------- brush engine ---------- */
+function softMask(c,r){const x=c.getContext('2d');x.globalCompositeOperation='destination-in';
+  const g=x.createRadialGradient(c.width/2,c.height/2,0,c.width/2,c.height/2,r);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(.6,'rgba(0,0,0,.8)');g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g;x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='source-over';return c}
+function patchOp(ctx,x,y,r,mode,str,fromX,fromY){
+  const R=Math.max(3,r|0),sz=R*2+2,p=mk(sz,sz),px=p.getContext('2d');
+  const sx=(mode==='smudge'?fromX:x)-R-1,sy=(mode==='smudge'?fromY:y)-R-1;
+  px.drawImage(ctx.canvas,sx,sy,sz,sz,0,0,sz,sz);
+  let src=p;
+  if(mode==='blend')src=blurCanvas(p,Math.max(2,R/5));
+  if(mode==='heal'){const big=mk(sz*2,sz*2);big.getContext('2d').drawImage(ctx.canvas,x-sz,y-sz,sz*2,sz*2,0,0,sz*2,sz*2);
+    const b=blurCanvas(big,Math.max(3,R/2));src=mk(sz,sz);src.getContext('2d').drawImage(b,sz/2,sz/2,sz,sz,0,0,sz,sz);}
+  softMask(src,R);const m=maskFor(R);ctx.save();
+  // exact mix: erase by mask, then add the new patch (no darkening build-up)
+  ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=str;ctx.drawImage(m,x-R-1,y-R-1);
+  ctx.globalCompositeOperation='lighter';ctx.drawImage(src,x-R-1,y-R-1);ctx.restore();}
+const maskCache={};
+function maskFor(R){if(maskCache[R])return maskCache[R];const sz=R*2+2,c=mk(sz,sz),x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,sz,sz);softMask(c,R);
+  const keys=Object.keys(maskCache);if(keys.length>60)delete maskCache[keys[0]];return maskCache[R]=c}
+
+const BR={
+  watercolor:{name:'Watercolor',spacing:.12,wet:true,stamp(c,x,y,b){c.fillStyle=rgba(b.rgb,1);const r=b.size*(.75+Math.random()*.45);
+    c.beginPath();c.arc(x+(Math.random()-.5)*b.size*.25,y+(Math.random()-.5)*b.size*.25,r,0,Math.PI*2);c.fill();}},
+  charcoal:{name:'Charcoal',spacing:.18,stamp(c,x,y,b){const r=b.size,n=Math.min(500,r*r*.5);c.fillStyle=rgba(b.rgb,.55);
+    for(let i=0;i<n;i++){const a=Math.random()*6.283,d=Math.sqrt(Math.random())*r,px=x+Math.cos(a)*d,py=y+Math.sin(a)*d;
+      const g=grainAt(px,py);if(Math.random()<g*g*b.op*1.4){const s=.8+Math.random()*1.4;c.fillRect(px,py,s,s)}}}},
+  pastel:{name:'Pastel',spacing:.2,stamp(c,x,y,b){const r=b.size,n=Math.min(450,r*r*.45);
+    for(let i=0;i<n;i++){const a=Math.random()*6.283,d=Math.sqrt(Math.random())*r,px=x+Math.cos(a)*d,py=y+Math.sin(a)*d;
+      if(Math.random()<grainAt(px,py)*b.op*1.3){c.fillStyle=rgba(jit(b.rgb,14),.6);const s=1.5+Math.random()*2.5;c.fillRect(px,py,s,s*.7)}}}},
+  pencil:{name:'Pencil',spacing:.2,stamp(c,x,y,b){c.strokeStyle=rgba(b.rgb,.55*b.op);c.lineWidth=Math.max(1,b.size*.12*b.pr*2);c.lineCap='round';
+    c.beginPath();c.moveTo(b.px+(Math.random()-.5),b.py+(Math.random()-.5));c.lineTo(x,y);c.stroke();}},
+  ink:{name:'Ink',spacing:.08,stamp(c,x,y,b){const w=b.size*.35*clamp(1.15-b.speed/45,.3,1.1)*b.pr*2;c.fillStyle=rgba(b.rgb,b.op);
+    c.beginPath();c.arc(x,y,Math.max(.8,w),0,Math.PI*2);c.fill();}},
+  oil:{name:'Oil',spacing:.12,stamp(c,x,y,b){
+    if(b.n%5===0){try{const d=c.getImageData(x|0,y|0,1,1).data;if(d[3]>40){for(let i=0;i<3;i++)b.rgb[i]=b.rgb[i]*.82+d[i]*.18}}catch(e){}}
+    const nx=-b.uy,ny=b.ux,k=11,r=b.size;c.lineCap='round';
+    if(!b.bristles)b.bristles=Array.from({length:k},(_,i)=>({o:(i/(k-1)-.5)*1.8+(Math.random()-.5)*.15,t:(Math.random()*2-1)*16,w:.7+Math.random()*.7}));
+    c.fillStyle=rgba(b.rgb,.3*b.op);c.beginPath();c.arc(x,y,r*.8,0,Math.PI*2);c.fill();
+    for(const br of b.bristles){const o=br.o*r;c.strokeStyle=rgba(b.rgb.map(v=>clamp(v+br.t,0,255)),.7*b.op);c.lineWidth=Math.max(1.5,r/k*2.6*br.w);
+      c.beginPath();c.moveTo(b.px+nx*o,b.py+ny*o);c.lineTo(x+nx*o,y+ny*o);c.stroke();}}},
+  marker:{name:'Flat color',spacing:.1,stamp(c,x,y,b){c.fillStyle=rgba(b.rgb,1);c.beginPath();c.arc(x,y,b.size*.6,0,Math.PI*2);c.fill();}},
+  dots:{name:'Pop dots',spacing:.3,stamp(c,x,y,b){const g=Math.max(7,b.size/3),r=b.size;c.fillStyle=rgba(b.rgb,1);
+    for(let gy=Math.floor((y-r)/g)*g;gy<=y+r;gy+=g)for(let gx=Math.floor((x-r)/g)*g;gx<=x+r;gx+=g){const ox=gx+((gy/g)%2?g/2:0);
+      if((ox-x)**2+(gy-y)**2<r*r){c.beginPath();c.arc(ox,gy,g*.32,0,Math.PI*2);c.fill();}}}},
+  facet:{name:'Facets',spacing:.9,stamp(c,x,y,b){const r=b.size*1.1;c.fillStyle=rgba(jit(b.rgb,22),.5*b.op);c.strokeStyle=rgba([40,35,30],.35);c.lineWidth=1.2;
+    c.beginPath();for(let i=0;i<3+(Math.random()*2|0);i++){const a=Math.random()*6.283,d=r*(.4+Math.random()*.6);i?c.lineTo(x+Math.cos(a)*d,y+Math.sin(a)*d):c.moveTo(x+Math.cos(a)*d,y+Math.sin(a)*d)}
+    c.closePath();c.fill();c.stroke();}},
+  smudge:{name:'Smudge',spacing:.15,stamp(c,x,y,b){patchOp(c,x,y,b.size,'smudge',.5*b.op+.2,b.px,b.py)}},
+  blend:{name:'Blend',spacing:.25,stamp(c,x,y,b){patchOp(c,x,y,b.size,'blend',.55*b.op+.2)}},
+  heal:{name:'Heal',spacing:.3,stamp(c,x,y,b){patchOp(c,x,y,b.size,'heal',.9)}},
+  eraser:{name:'Eraser',spacing:.12,stamp(c,x,y,b){c.save();c.globalCompositeOperation='destination-out';
+    const g=c.createRadialGradient(x,y,0,x,y,b.size);g.addColorStop(0,`rgba(0,0,0,${b.op})`);g.addColorStop(.7,`rgba(0,0,0,${b.op*.8})`);g.addColorStop(1,'rgba(0,0,0,0)');
+    c.fillStyle=g;c.beginPath();c.arc(x,y,b.size,0,Math.PI*2);c.fill();c.restore();}},
+  move:{name:'Move subject'}
+};
+const PAINT_TOOLS=['watercolor','charcoal','pastel','pencil','ink','oil','marker','dots','facet','smudge','blend','eraser','move'];
+const FINISH_TOOLS=['heal','blend','smudge','eraser','touchup'];
+
+function subjMatrix(){return new DOMMatrix().translate(W/2+S.t.x,H/2+S.t.y).rotate(S.t.r).scale(S.t.s).translate(-W/2,-H/2)}
+function targetLayer(){return S.merged?L.merged:(S.active==='subj'?L.subj:L.bg)}
+function toCanvas(e){const r=view.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height}}
+function toLayer(p){if(!S.merged&&S.active==='subj'){const q=subjMatrix().inverse().transformPoint(new DOMPoint(p.x,p.y));return{x:q.x,y:q.y}}return p}
+function currentTool(){return S.tool==='touchup'?S.lastPaintTool:S.tool}
+
+let stroke=null;
+view.addEventListener('pointerdown',e=>{
+  if(S.step<3||S.step>4||e.button>0)return;
+  if(S.step===4&&!S.merged){say('Combine your layers first. Use the button on the right.');return}
+  const tool=currentTool(),p=toCanvas(e);view.setPointerCapture(e.pointerId);
+  if(tool==='move'){if(S.merged)return;pushUndo();stroke={move:true,sx:p.x,sy:p.y,tx:S.t.x,ty:S.t.y};return}
+  const spot=hitSpot(p);if(S.step===4&&spot){healSpot(spot);return}
+  pushUndo();const lp=toLayer(p),br=BR[tool];
+  const sc=(!S.merged&&S.active==='subj')?S.t.s:1;
+  stroke={tool,br,lx:lp.x,ly:lp.y,sx:lp.x,sy:lp.y,px:lp.x,py:lp.y,acc:0,speed:0,n:0,
+    b:{rgb:S.rgb.slice(),size:S.size/sc,op:S.op,pr:e.pointerType==='pen'?(e.pressure||.5):.5,speed:0,ux:1,uy:0,px:lp.x,py:lp.y,n:0},
+    minx:lp.x,miny:lp.y,maxx:lp.x,maxy:lp.y};
+  const c=br.wet?L.wet.getContext('2d'):ctxOf(targetLayer());
+  if(br.wet){c.clearRect(0,0,W,H)}
+  stroke.ctx=c;doStamp(lp.x,lp.y,1,0);requestRender();
+});
+view.addEventListener('pointermove',e=>{
+  if(!stroke)return;const p=toCanvas(e);
+  if(stroke.move){S.t.x=stroke.tx+(p.x-stroke.sx);S.t.y=stroke.ty+(p.y-stroke.sy);requestRender();return}
+  const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+  for(const ev of (evs.length?evs:[e])){const lp=toLayer(toCanvas(ev));if(ev.pointerType==='pen')stroke.b.pr=ev.pressure||.5;strokeTo(lp.x,lp.y)}
+  requestRender();
+});
+function endStroke(){if(!stroke)return;if(stroke.br&&stroke.br.wet)commitWet();stroke=null;requestRender();}
+view.addEventListener('pointerup',endStroke);view.addEventListener('pointercancel',endStroke);
+
+function strokeTo(x,y){const s=stroke,k=1-S.stab*.9;s.sx+=(x-s.sx)*k;s.sy+=(y-s.sy)*k;
+  const dx=s.sx-s.lx,dy=s.sy-s.ly,dist=Math.hypot(dx,dy);if(dist<.01)return;
+  const ux=dx/dist,uy=dy/dist,sp=Math.max(1,s.b.size*s.br.spacing);s.speed=s.speed*.7+dist*.3;
+  let d=sp-s.acc;while(d<=dist){doStamp(s.lx+ux*d,s.ly+uy*d,ux,uy);d+=sp}
+  s.acc=dist-(d-sp);s.lx=s.sx;s.ly=s.sy;}
+function doStamp(x,y,ux,uy){const s=stroke,b=s.b;b.ux=ux;b.uy=uy;b.speed=s.speed;b.n=s.n++;
+  s.br.stamp(s.ctx,x,y,b);b.px=x;b.py=y;
+  const r=b.size*1.6;s.minx=Math.min(s.minx,x-r);s.miny=Math.min(s.miny,y-r);s.maxx=Math.max(s.maxx,x+r);s.maxy=Math.max(s.maxy,y+r);}
+
+function commitWet(){const s=stroke,pad=30;
+  const bx=clamp(Math.floor(s.minx-pad),0,W),by=clamp(Math.floor(s.miny-pad),0,H),bw=clamp(Math.ceil(s.maxx+pad),0,W)-bx,bh=clamp(Math.ceil(s.maxy+pad),0,H)-by;
+  if(bw<2||bh<2){L.wet.getContext('2d').clearRect(0,0,W,H);return}
+  const reg=mk(bw,bh);reg.getContext('2d').drawImage(L.wet,bx,by,bw,bh,0,0,bw,bh);
+  const soft=blurCanvas(reg,S.wetPaper?7:2.2);
+  const edge=clone(reg),ex=edge.getContext('2d');ex.globalCompositeOperation='destination-out';ex.drawImage(blurCanvas(reg,S.wetPaper?14:9),0,0);
+  const t=ctxOf(targetLayer());t.save();t.globalCompositeOperation='multiply';
+  t.globalAlpha=S.op*.42;t.drawImage(soft,bx,by);
+  t.globalAlpha=S.op*.55;t.drawImage(edge,bx,by);t.restore();
+  L.wet.getContext('2d').clearRect(0,0,W,H);}
+
+/* ---------- render ---------- */
+let raf=0;function requestRender(){if(!raf)raf=requestAnimationFrame(()=>{raf=0;render()})}
+function drawWet(){if(stroke&&stroke.br&&stroke.br.wet){D.save();D.globalCompositeOperation='multiply';D.globalAlpha=S.op*.42;D.drawImage(L.wet,0,0);D.restore()}}
+function render(){if(!D)return;D.setTransform(1,0,0,1,0,0);D.globalAlpha=1;D.globalCompositeOperation='source-over';
+  D.clearRect(0,0,W,H);D.drawImage(L.paper,0,0);
+  if(S.compare&&S.original){D.drawImage(S.original,0,0)}
+  else if(S.merged){D.drawImage(L.merged,0,0);drawWet()}
+  else{if(S.showBg){D.drawImage(L.bg,0,0);if(S.active==='bg')drawWet()}
+    if(S.showSubj){const m=subjMatrix();D.save();D.setTransform(m.a,m.b,m.c,m.d,m.e,m.f);D.drawImage(L.subj,0,0);if(S.active==='subj')drawWet();
+      if(S.step===3&&(S.tool==='move'||S.active==='subj')){D.strokeStyle='rgba(200,85,61,.7)';D.setLineDash([14/S.t.s,10/S.t.s]);D.lineWidth=3/S.t.s;D.strokeRect(2,2,W-4,H-4)}
+      D.restore();}}
+  if(S.hasGuide&&S.guideOn&&S.step<=4){D.globalAlpha=S.guideAlpha;D.drawImage(L.guide,0,0);D.globalAlpha=1}
+  if(S.step===4&&S.spots.length){S.spots.forEach((s,i)=>{const x=s.x*W,y=s.y*H,r=Math.max(18,s.r*W);
+    D.strokeStyle='#e63946';D.lineWidth=Math.max(3,W/400);D.setLineDash([]);D.beginPath();D.arc(x,y,r,0,Math.PI*2);D.stroke();
+    D.fillStyle='#e63946';D.beginPath();D.arc(x+r*.72,y-r*.72,Math.max(12,W/90),0,Math.PI*2);D.fill();
+    D.fillStyle='#fff';D.font=`bold ${Math.max(14,W/70)}px sans-serif`;D.textAlign='center';D.textBaseline='middle';D.fillText(String(i+1),x+r*.72,y-r*.72);});}
+}
+
+/* ---------- undo ---------- */
+function snap(){return S.merged?{merged:true,m:clone(L.merged)}:{merged:false,bg:clone(L.bg),subj:clone(L.subj),t:{...S.t}}}
+function restoreSnap(s){if(s.merged){L.merged=clone(s.m);S.merged=true;S.active='merged'}
+  else{L.bg.getContext('2d').clearRect(0,0,W,H);L.bg.getContext('2d').drawImage(s.bg,0,0);L.subj.getContext('2d').clearRect(0,0,W,H);L.subj.getContext('2d').drawImage(s.subj,0,0);
+    S.t={...s.t};const wasMerged=S.merged;S.merged=false;if(S.active==='merged')S.active='bg';if(wasMerged)S.original=null;}
+  syncUI();requestRender();}
+function pushUndo(){S.undo.push(snap());if(S.undo.length>20)S.undo.shift();S.redo=[];syncUndo()}
+function undo(){if(!S.undo.length)return;S.redo.push(snap());restoreSnap(S.undo.pop());syncUndo()}
+function redo(){if(!S.redo.length)return;S.undo.push(snap());restoreSnap(S.redo.pop());syncUndo()}
+function syncUndo(){$('#undoBtn').disabled=!S.undo.length;$('#redoBtn').disabled=!S.redo.length}
+
+/* ---------- combine ---------- */
+function combine(){if(S.merged)return;pushUndo();const m=mk(W,H),x=m.getContext('2d');
+  if(S.showBg)x.drawImage(L.bg,0,0);
+  if(S.showSubj){const t=subjMatrix();x.setTransform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.setTransform(1,0,0,1,0,0)}
+  L.merged=m;S.merged=true;S.active='merged';S.original=null;if(S.tool==='move')setTool('blend');syncUI();requestRender();
+  say('Layers combined. Use the <b>Blend</b> and <b>Smudge</b> tools around the edges of your subject so it melts into the scene instead of looking pasted on.');}
+
+/* ---------- UI: tools ---------- */
+function buildTools(){const box=$('#tools');box.innerHTML='';
+  const list=S.step===4?FINISH_TOOLS:PAINT_TOOLS;
+  const h=document.createElement('h4');h.textContent=S.step===4?'Touch-up tools':'Brushes';box.appendChild(h);
+  list.forEach(k=>{if(k==='move'&&S.merged)return;const b=document.createElement('button');b.dataset.tool=k;
+    b.innerHTML=(k==='touchup'?'Paint ('+esc(BR[S.lastPaintTool].name)+')':esc(BR[k].name))+(S.recommended.includes(k)?'<span class="rec" title="Recommended for this style"></span>':'');
+    if(k==='move'&&!S.merged){const hr=document.createElement('h4');hr.textContent='Arrange';box.appendChild(hr)}
+    b.onclick=()=>setTool(k);box.appendChild(b)});
+  if(S.recommended.length&&S.step===3){const n=document.createElement('div');n.className='note';n.innerHTML='<span style="color:var(--accent2)">●</span> recommended for your style';box.appendChild(n)}
+  markTool();}
+function setTool(k){S.tool=k;if(PAINT_TOOLS.includes(k)&&!['smudge','blend','eraser','move'].includes(k))S.lastPaintTool=k;
+  if(k==='move'&&!S.merged){setActive('subj')}
+  markTool();$$('.wetOnly').forEach(e=>e.classList.toggle('hide',k!=='watercolor'));view.style.cursor=k==='move'?'move':'crosshair';requestRender();}
+function markTool(){$$('#tools button').forEach(b=>b.classList.toggle('on',b.dataset.tool===S.tool))}
+function setActive(v){S.active=v;const r=$(`input[name=layer][value=${v}]`);if(r)r.checked=true;requestRender()}
+
+function syncUI(){
+  $$('.s3').forEach(e=>e.classList.toggle('hide',S.step!==3));
+  $$('.s4').forEach(e=>e.classList.toggle('hide',S.step!==4));
+  $$('.s5').forEach(e=>e.classList.toggle('hide',S.step!==5));
+  $('#guideToggle').classList.toggle('hide',!(S.hasGuide&&S.step<=4));
+  $('#guideToggle').textContent='Guide: '+(S.guideOn?'on':'off');
+  $('#layerGrp').classList.toggle('hide',S.merged);
+  $$('.mergedNote').forEach(e=>e.classList.toggle('hide',!S.merged));
+  $$('.needMerge').forEach(e=>e.classList.toggle('hide',S.merged));
+  if(S.step===4&&!FINISH_TOOLS.includes(S.tool))S.tool='heal';
+  if(S.step===3&&!PAINT_TOOLS.includes(S.tool))S.tool=S.lastPaintTool;
+  buildTools();setTool(S.tool);syncUndo();
+  $('#status').textContent=S.merged?'Painting combined':(S.active==='subj'?'Painting on: Subject layer':'Painting on: Background layer');
+  $('#clearSpots').classList.toggle('hide',!S.spots.length);
+}
+
+/* ---------- steps ---------- */
+function go(n){n=+n;S.step=n;$$('#steps button').forEach(b=>b.classList.toggle('on',+b.dataset.step===n));
+  $('#p1').classList.toggle('on',n===1);$('#p2').classList.toggle('on',n===2);$('#pWork').classList.toggle('on',n>=3);
+  if(n===3&&S.portrait&&!S.portraitIntro){S.portraitIntro=1;setActive('subj');if(!S.hasGuide)say('Ready for your self-portrait. Tap <b>Take a selfie</b> or <b>Upload a photo</b> under Guide image on the right.')}
+  if(n===3&&!S.introPaint){S.introPaint=1;say('Welcome to the studio. Start with the <b>Background</b> layer (the setting), then switch to the <b>Subject</b> layer for your main subject. When both look good, tap <b>Combine layers</b>.')}
+  if(n===4){if(S.merged&&!S.original)S.original=clone(L.merged);if(!S.introFinish){S.introFinish=1;say('This is the Finishing Room. Tap <b>Check my painting</b> and I will circle spots to fix. Tap a circle on the painting to heal it. <b>Restore original</b> always brings back your painting as it was when you walked in.')}}
+  if(n===5){if(!S.merged&&!hasPaint())say('Paint something first, or upload a painting in step 1.');}
+  if(n!==4)S.compare=false;syncUI();requestRender();window.scrollTo({top:0,behavior:'smooth'});}
+$$('#steps button').forEach(b=>b.onclick=()=>go(b.dataset.step));
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+function hasPaint(){return true}
+
+/* ---------- coach ---------- */
+function say(html,me){const m=document.createElement('div');m.className='msg'+(me?' me':'');m.innerHTML=html;$('#msgs').appendChild(m);$('#msgs').scrollTop=1e9;return m}
+function thinking(t){return say(`<span class="spin"></span> ${esc(t||'Mr. Paul is thinking…')}`)}
+async function api(mode,payload){const r=await fetch('/api/coach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({mode},payload))});
+  let j={};try{j=await r.json()}catch(e){}if(!r.ok||j.error)throw new Error(j.error||'Mr. Paul is busy right now. Please try again in a moment.');return j}
+function paintingJpeg(max){const c=compositeCanvas(false),k=Math.min(1,(max||900)/Math.max(c.width,c.height));const o=mk(c.width*k,c.height*k);o.getContext('2d').drawImage(c,0,0,o.width,o.height);
+  return o.toDataURL('image/jpeg',.85).split(',')[1]}
+function compositeCanvas(withGuide){const c=mk(W,H),x=c.getContext('2d');x.drawImage(L.paper,0,0);
+  if(S.merged)x.drawImage(L.merged,0,0);else{if(S.showBg)x.drawImage(L.bg,0,0);if(S.showSubj){const t=subjMatrix();x.setTransform(t.a,t.b,t.c,t.d,t.e,t.f);x.drawImage(L.subj,0,0);x.setTransform(1,0,0,1,0,0)}}
+  if(withGuide&&S.hasGuide){x.globalAlpha=S.guideAlpha;x.drawImage(L.guide,0,0)}return c}
+
+/* ---------- step 1: vision ---------- */
+$('#visionBtn').onclick=async()=>{const v=$('#visionText').value.trim();if(v.length<3){say('Tell me a little about what you want to paint first.');return}
+  S.vision=v;const btn=$('#visionBtn');btn.disabled=true;const out=$('#visionOut');out.innerHTML='<p><span class="spin" style="border-color:var(--ink);border-top-color:transparent"></span> Mr. Paul is sketching ideas…</p>';
+  try{const j=await api('vision',{vision:v});let h=`<div class="idea"><b>Mr. Paul says:</b> ${esc(j.summary)}</div>`;
+    (j.styles||[]).forEach(s=>{h+=`<div class="idea"><b>${esc(s.name)}</b><br>${esc(s.why)}<br><button class="secondary useStyle" data-style="${esc(s.name)}" style="margin-top:6px">Use this style</button></div>`});
+    if(j.composition)h+=`<div class="idea"><b>Where things go:</b> ${esc(j.composition)}</div>`;
+    if(j.palette&&j.palette.length)h+=`<div class="idea"><b>Suggested colors</b><div class="swatches">${j.palette.map(c=>`<span class="sw" style="background:${esc(c)}" title="${esc(c)}"></span>`).join('')}</div></div>`;
+    if(j.order&&j.order.length)h+=`<div class="idea"><b>Paint in this order</b><ol>${j.order.map(o=>`<li>${esc(o)}</li>`).join('')}</ol></div>`;
+    if(j.subject)$('#outlineText').value=String(j.subject).slice(0,80);
+    S.visionPalette=(j.palette||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c));
+    out.innerHTML=h;
+    out.querySelectorAll('.useStyle').forEach(b=>b.onclick=()=>{pickStyle(b.dataset.style);go(2)});
+  }catch(e){out.innerHTML='';say(esc(e.message))}finally{btn.disabled=false}};
+
+/* ---------- step 2: styles ---------- */
+function buildStyleGrid(){const g=$('#styleGrid');g.innerHTML='';Object.keys(STYLES).forEach(n=>{const b=document.createElement('button');b.className='style';b.dataset.style=n;
+  b.innerHTML=`<b>${esc(n)}</b><small>${esc(STYLES[n].era)}</small>${PORTRAIT_STYLES.includes(n)?'<br><span class="pt">great for portraits</span>':''}`;b.onclick=()=>pickStyle(n);g.appendChild(b)})}
+function applyPreset(st){S.recommended=(st.brushes||[]).filter(k=>BR[k]);
+  const pal=(st.palette||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c));buildPalette(pal.concat(S.visionPalette||[]).slice(0,10));
+  if(pal[0]){S.rgb=hexToRgb(pal[0]);$('#color').value=pal[0]}
+  if(st.paper&&st.paper!==S.paper&&['cold','smooth','toned','canvas'].includes(st.paper)){S.paper=st.paper;$('#paper').value=st.paper;makePaper()}
+  if(S.recommended[0]){S.tool=S.recommended[0];S.lastPaintTool=S.recommended.find(k=>!['smudge','blend','eraser'].includes(k))||'oil'}
+  buildTools();}
+function showLesson(name,st){const box=$('#lesson');box.style.display='block';
+  box.innerHTML=`<h3>${esc(name)}</h3><div class="note">${esc(st.era||'')}</div><p>${esc(st.about||'')}</p>
+   ${st.artists&&st.artists.length?`<p><b>Famous artists:</b> ${st.artists.map(esc).join(', ')}</p>`:''}
+   ${st.tech&&st.tech.length?`<b>Techniques to try</b><ul>${st.tech.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
+   ${st.tip?`<p><b>Mr. Paul's paint-along tip:</b> ${esc(st.tip)}</p>`:''}
+   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes and a ${esc(name)} palette.</div>`;}
+function pickStyle(name){const st=STYLES[name];if(!st){customStyle(name);return}if(S.style!==name)setFace(faceIdx+1);S.style=name;
+  $$('.style').forEach(b=>b.classList.toggle('on',b.dataset.style===name));applyPreset(st);showLesson(name,st);
+  say(`<h4>${esc(name)}</h4>${esc(st.tip)}`);}
+async function customStyle(name){name=String(name||'').trim();if(!name)return;const t=thinking('Mr. Paul is preparing a lesson on '+name+'…');
+  try{const j=await api('lesson',{style:name});t.remove();const st={era:j.era,about:j.about,artists:j.artists,tech:j.techniques,tip:j.tip,brushes:j.brushes,palette:j.palette,paper:j.paper};
+    S.style=j.name||name;$$('.style').forEach(b=>b.classList.remove('on'));applyPreset(st);showLesson(S.style,st);say(`<h4>${esc(S.style)}</h4>${esc(st.tip||'')}`);go(2);}
+  catch(e){t.remove();say(esc(e.message))}}
+$('#customBtn').onclick=()=>customStyle($('#customStyle').value);
+
+/* ---------- paint props ---------- */
+function buildPalette(list){const p=$('#palette');p.innerHTML='';(list.length?list:['#2e5670','#c8553d','#e9a23b','#3f7d4e','#111111','#ffffff']).forEach(c=>{
+  const s=document.createElement('span');s.className='sw';s.style.background=c;s.title=c;s.onclick=()=>{S.rgb=hexToRgb(c);$('#color').value=c};p.appendChild(s)})}
+$('#color').oninput=e=>S.rgb=hexToRgb(e.target.value);
+const upd=()=>{S.size=+$('#size').value;S.op=$('#opacity').value/100;S.stab=$('#stab').value/100;$('#sizeVal').textContent=S.size;$('#opVal').textContent=Math.round(S.op*100)+'%'};
+['size','opacity','stab'].forEach(id=>$('#'+id).oninput=upd);upd();
+$('#wetPaper').onchange=e=>S.wetPaper=e.target.checked;
+$$('input[name=layer]').forEach(r=>r.onchange=()=>{setActive(r.value);if(S.tool==='move'&&r.value==='bg')setTool(S.lastPaintTool);syncUI()});
+$('#showBg').onchange=e=>{S.showBg=e.target.checked;requestRender()};$('#showSubj').onchange=e=>{S.showSubj=e.target.checked;requestRender()};
+$('#fillLayer').onclick=()=>{pushUndo();const x=ctxOf(targetLayer());x.save();x.globalAlpha=S.op;x.fillStyle=rgba(S.rgb,1);x.fillRect(0,0,W,H);x.restore();requestRender()};
+$('#clearLayer').onclick=()=>{pushUndo();targetLayer().getContext('2d').clearRect(0,0,W,H);requestRender()};
+$('#subjScale').oninput=e=>{S.t.s=e.target.value/100;requestRender()};$('#subjRot').oninput=e=>{S.t.r=+e.target.value;requestRender()};
+$('#subjReset').onclick=()=>{S.t={x:0,y:0,s:1,r:0};$('#subjScale').value=100;$('#subjRot').value=0;requestRender()};
+$('#combineBtn').onclick=combine;$('#combineBtn2').onclick=()=>{combine();if(!S.original)S.original=clone(L.merged)};
+$('#paper').onchange=e=>{S.paper=e.target.value;makePaper()};
+$('#undoBtn').onclick=undo;$('#redoBtn').onclick=redo;
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();e.shiftKey?redo():undo()}});
+
+/* ---------- guide ---------- */
+function drawContain(img,canvas,bg){const x=canvas.getContext('2d');x.clearRect(0,0,canvas.width,canvas.height);if(bg){x.fillStyle=bg;x.fillRect(0,0,canvas.width,canvas.height)}
+  const k=Math.min(canvas.width/img.width,canvas.height/img.height),w=img.width*k,h=img.height*k;x.drawImage(img,(canvas.width-w)/2,(canvas.height-h)/2,w,h)}
+function loadImageFile(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),i=new Image();i.onload=()=>{res(i)};i.onerror=()=>rej(new Error('That image could not be opened. Try a JPG or PNG.'));i.src=u})}
+let guidePhoto=null;
+function setGuidePhoto(src,isSelfie){guidePhoto=mk(W,H);drawContain(src,guidePhoto);S.hasGuide=true;S.guideOn=true;$('#photoModes').classList.remove('hide');
+  const mode=S.portrait?'lines':'photo';$(`input[name=gmode][value=${mode}]`).checked=true;applyGuideMode();syncUI();
+  if(S.portrait&&!S.portraitTipped){S.portraitTipped=1;portraitLesson()}else say(S.portrait?'Your photo is ready. Switch between photo and outline any time.':'Your photo is now a faded guide. Paint right over it, and use <b>Guide: on/off</b> at the top to check your work without it.')}
+function applyGuideMode(){if(!guidePhoto)return;const x=L.guide.getContext('2d');x.clearRect(0,0,W,H);
+  if($('input[name=gmode]:checked').value==='lines'){x.drawImage(traceLines(guidePhoto,+$('#lineDetail').value),0,0);if(S.guideAlpha<.4){S.guideAlpha=.5;$('#guideAlpha').value=50}}
+  else x.drawImage(guidePhoto,0,0);requestRender()}
+function traceLines(src,detail){ // edge detection in the browser: grayscale, blur, Sobel, keep the strongest edges
+  const k=Math.min(1,900/Math.max(src.width,src.height)),w=Math.round(src.width*k),h=Math.round(src.height*k);
+  const small=mk(w,h),sx=ctxOf(small);sx.drawImage(blurCanvas(src,2.5),0,0,w,h);const d=sx.getImageData(0,0,w,h).data;
+  const g=new Float32Array(w*h),a=new Uint8Array(w*h);for(let i=0,j=0;i<w*h;i++,j+=4){g[i]=d[j]*.3+d[j+1]*.59+d[j+2]*.11;a[i]=d[j+3]}
+  const mag=new Float32Array(w*h),vals=[];
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(a[i]<20)continue;
+    const gx=-g[i-w-1]-2*g[i-1]-g[i+w-1]+g[i-w+1]+2*g[i+1]+g[i+w+1],gy=-g[i-w-1]-2*g[i-w]-g[i-w+1]+g[i+w-1]+2*g[i+w]+g[i+w+1];
+    const m=Math.hypot(gx,gy);mag[i]=m;if(m>4)vals.push(m)}
+  vals.sort((p,q)=>p-q);const keep=.06+detail*.014;const th=vals.length?vals[Math.floor(vals.length*(1-keep))]:999;
+  const out=mk(w,h),ox=out.getContext('2d'),img=ox.createImageData(w,h),o=img.data;
+  for(let i=0;i<w*h;i++){if(mag[i]>=th){const t=Math.min(1,(mag[i]-th)/(th+1)+.75),j=i*4;o[j]=o[j+1]=o[j+2]=25;o[j+3]=255*t}}
+  ox.putImageData(img,0,0);const full=mk(src.width,src.height),fx=full.getContext('2d');fx.imageSmoothingQuality='high';fx.drawImage(out,0,0,full.width,full.height);return full}
+$$('input[name=gmode]').forEach(r=>r.onchange=applyGuideMode);
+let lineRaf=0;$('#lineDetail').oninput=()=>{if($('input[name=gmode]:checked').value!=='lines')return;clearTimeout(lineRaf);lineRaf=setTimeout(applyGuideMode,120)};
+$('#guideUpload').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const img=await loadImageFile(f);setGuidePhoto(img)}catch(err){say(esc(err.message))}};
+/* camera selfie */
+let camStream=null;
+$('#cameraBtn').onclick=async()=>{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say('This browser cannot open the camera. Use <b>Upload a photo</b> instead.');return}
+  try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:960}},audio:false});
+    $('#camVideo').srcObject=camStream;$('#camModal').classList.remove('hide')}
+  catch(e){say('The camera could not be opened. Check that camera permission is allowed, or use <b>Upload a photo</b>.')}};
+function stopCam(){if(camStream){camStream.getTracks().forEach(t=>t.stop());camStream=null}$('#camVideo').srcObject=null;$('#camModal').classList.add('hide')}
+$('#camCancel').onclick=stopCam;
+$('#camSnap').onclick=()=>{const v=$('#camVideo');if(!v.videoWidth){return}const c=mk(v.videoWidth,v.videoHeight),x=c.getContext('2d');x.translate(c.width,0);x.scale(-1,1);x.drawImage(v,0,0);stopCam();setGuidePhoto(c,true)};
+/* self-portrait mode */
+const PORTRAIT_STYLES=['Renaissance','Impressionism','Post-Impressionism','Pop Art','Watercolor','Charcoal (Black & White)','Pastel','Cartoonish'];
+function portraitLesson(){say(`<h4>Self-portrait tips from Mr. Paul</h4>Artists have used these classic guidelines for centuries. Every face is a little different, so use them as a starting point.<ul>
+<li>The eyes sit about <b>halfway</b> down the head, lower than most people expect.</li>
+<li>The space between the eyes is about <b>one eye wide</b>.</li>
+<li>The bottom of the nose is about halfway between the eyebrows and the chin.</li>
+<li>The mouth sits about a third of the way down from the nose to the chin.</li>
+<li>The tops of the ears line up near the eyebrows, the bottoms near the bottom of the nose.</li></ul>
+Paint the big shapes first: head, hair, then the shadow side of the face. Save the eyes for last.`)}
+$('#portraitStart').onclick=()=>{S.portrait=true;go(2);say('Great choice. Styles marked <b>great for portraits</b> work especially well. Pick one, then in the studio use <b>Take a selfie</b> or <b>Upload a photo</b> under Guide image. Tip: paint your face on the <b>Subject</b> layer and a simple background on the Background layer.')};
+$('#outlineBtn').onclick=async()=>{const subj=$('#outlineText').value.trim();if(!subj){say('Type what you want an outline of, like "a sitting dog".');return}
+  const btn=$('#outlineBtn');btn.disabled=true;const t=thinking('Mr. Paul is sketching an outline…');
+  try{const j=await api('outline',{subject:subj});const paths=(j.paths||[]).filter(d=>typeof d==='string'&&/^[MmLlHhVvCcSsQqTtAaZz0-9\s,.\-eE]+$/.test(d)&&d.length<4000).slice(0,40);
+    if(!paths.length)throw new Error('Mr. Paul could not draw that outline. Try a simpler subject.');
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" width="${W}" height="${H}" preserveAspectRatio="xMidYMid meet"><g fill="none" stroke="#1a1a1a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">${paths.map(d=>`<path d="${d}"/>`).join('')}</g></svg>`;
+    const img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('The outline could not be drawn. Try again.'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+    const x=L.guide.getContext('2d');x.clearRect(0,0,W,H);x.drawImage(img,0,0,W,H);S.hasGuide=true;S.guideOn=true;
+    if(S.guideAlpha<.35){S.guideAlpha=.45;$('#guideAlpha').value=45}syncUI();requestRender();t.remove();say(esc(j.note||'Here is a simple outline to paint over.'))}
+  catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+$('#guideAlpha').oninput=e=>{S.guideAlpha=e.target.value/100;requestRender()};
+$('#clearGuide').onclick=()=>{L.guide.getContext('2d').clearRect(0,0,W,H);S.hasGuide=false;syncUI();requestRender()};
+$('#guideToggle').onclick=()=>{S.guideOn=!S.guideOn;syncUI();requestRender()};
+
+/* ---------- upload finished painting ---------- */
+$('#uploadPainting').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{const img=await loadImageFile(f);const k=Math.min(1,2400/Math.max(img.width,img.height));const w=Math.round(img.width*k),h=Math.round(img.height*k);
+    setSize(w,h);L.merged=mk(w,h);L.merged.getContext('2d').drawImage(img,0,0,w,h);S.merged=true;S.active='merged';S.undo=[];S.redo=[];S.original=clone(L.merged);S.spots=[];S.hasGuide=false;
+    go(4);say('Your painting is in the Finishing Room. Tap <b>Check my painting</b> for my notes, or try <b>Remove stray marks</b> and the Adjust sliders.')}catch(err){say(esc(err.message))}};
+
+/* ---------- finishing: check & spots ---------- */
+function hitSpot(p){return S.step===4?S.spots.find(s=>Math.hypot(p.x-s.x*W,p.y-s.y*H)<=Math.max(18,s.r*W)):null}
+function healSpot(s){pushUndo();const c=ctxOf(L.merged),r=Math.max(10,s.r*W*.9);
+  for(let i=0;i<3;i++)patchOp(c,s.x*W,s.y*H,r,'heal',.85);S.spots=S.spots.filter(q=>q!==s);syncUI();requestRender();say('Spot healed. Not quite right? Tap Undo.');}
+$('#checkBtn').onclick=async()=>{if(!S.merged){say('Combine your layers first.');return}const btn=$('#checkBtn');btn.disabled=true;const t=thinking('Mr. Paul is looking closely at your painting…');
+  try{const j=await api('check',{image:paintingJpeg(1000),style:S.style||'',vision:S.vision||''});t.remove();
+    S.spots=(j.spots||[]).filter(s=>s&&isFinite(s.x)&&isFinite(s.y)).slice(0,6).map(s=>({x:clamp(+s.x,0,1),y:clamp(+s.y,0,1),r:clamp(+s.r||.04,.015,.15),note:String(s.note||'')}));
+    let h=`<h4>Mr. Paul's notes</h4><p>${esc(j.summary||'')}</p>`;
+    if(j.strengths&&j.strengths.length)h+=`<b>What's working</b><ul>${j.strengths.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
+    if(j.tips&&j.tips.length)h+=`<b>Try this</b><ul>${j.tips.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>`;
+    if(S.spots.length)h+=`<b>Circled spots</b> (tap a circle on the painting to heal it)<ol>${S.spots.map(s=>`<li>${esc(s.note)}</li>`).join('')}</ol>`;
+    say(h);syncUI();requestRender();}
+  catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+$('#clearSpots').onclick=()=>{S.spots=[];syncUI();requestRender()};
+
+/* ---------- finishing: stray marks, soften ---------- */
+$('#sens').oninput=e=>$('#sensVal').textContent=e.target.value;
+$('#strayBtn').onclick=()=>{if(!S.merged){say('Combine your layers first.');return}pushUndo();
+  const sens=+$('#sens').value,c=ctxOf(L.merged),img=c.getImageData(0,0,W,H),d=img.data;
+  const bd=ctxOf(blurCanvas(L.merged,8)).getImageData(0,0,W,H).data;
+  const T=150-sens*11,maxA=Math.round((10+sens*sens*8)*Math.max(1,W*H/1920000));
+  const N=W*H,flag=new Uint8Array(N);
+  for(let i=0,k=0;i<N;i++,k+=4){const a=d[k+3]/255,ba=bd[k+3]/255;if(Math.abs(d[k]*a-bd[k]*ba)+Math.abs(d[k+1]*a-bd[k+1]*ba)+Math.abs(d[k+2]*a-bd[k+2]*ba)+Math.abs(d[k+3]-bd[k+3])*1.5>T)flag[i]=1}
+  // integral image of flagged pixels, so texture (charcoal grain, dots) is kept: only ISOLATED specks are removed
+  const W1=W+1,integ=new Uint32Array(W1*(H+1));
+  for(let y=0;y<H;y++){let row=0;for(let x=0;x<W;x++){row+=flag[y*W+x];integ[(y+1)*W1+x+1]=integ[y*W1+x+1]+row}}
+  const boxCount=(x0,y0,x1,y1)=>{x0=clamp(x0,0,W);y0=clamp(y0,0,H);x1=clamp(x1,0,W);y1=clamp(y1,0,H);return integ[y1*W1+x1]-integ[y0*W1+x1]-integ[y1*W1+x0]+integ[y0*W1+x0]};
+  const pad=6+sens;
+  let removed=0;const stack=new Int32Array(N),comp=[];
+  for(let i=0;i<N;i++){if(flag[i]!==1)continue;let sp=0;stack[sp++]=i;flag[i]=2;comp.length=0;let big=false;let mnx=W,mny=H,mxx=0,mxy=0;
+    while(sp){const p=stack[--sp];const x=p%W,y=(p/W)|0;if(!big){comp.push(p);if(comp.length>maxA)big=true;if(x<mnx)mnx=x;if(x>mxx)mxx=x;if(y<mny)mny=y;if(y>mxy)mxy=y}
+      if(x>0&&flag[p-1]===1){flag[p-1]=2;stack[sp++]=p-1}if(x<W-1&&flag[p+1]===1){flag[p+1]=2;stack[sp++]=p+1}
+      if(y>0&&flag[p-W]===1){flag[p-W]=2;stack[sp++]=p-W}if(y<H-1&&flag[p+W]===1){flag[p+W]=2;stack[sp++]=p+W}}
+    if(big)continue;
+    {const x0=mnx-pad,y0=mny-pad,x1=mxx+pad+1,y1=mxy+pad+1;
+      // must be truly isolated: no other marks nearby
+      if(boxCount(x0,y0,x1,y1)-comp.length>2)continue;}
+    // surroundings must be even (one color), so edges and textures are never touched
+    let sr=0,sg=0,sb=0,sa=0,qa=0,ql=0,sl=0,cnt=0;const ax0=clamp(mnx-pad,0,W-1),ay0=clamp(mny-pad,0,H-1),ax1=clamp(mxx+pad,0,W-1),ay1=clamp(mxy+pad,0,H-1);
+    for(let y=ay0;y<=ay1;y++)for(let x=ax0;x<=ax1;x++){const q=y*W+x;if(flag[q])continue;
+      if(x>mnx-2&&x<mxx+2&&y>mny-2&&y<mxy+2)continue;
+      const k=q*4,a=d[k+3],l=(d[k]*.3+d[k+1]*.59+d[k+2]*.11)*a/255;sr+=d[k]*a;sg+=d[k+1]*a;sb+=d[k+2]*a;sa+=a;qa+=a*a;sl+=l;ql+=l*l;cnt++}
+    if(!cnt)continue;
+    const A=sa/cnt,sdA=Math.sqrt(Math.max(0,qa/cnt-A*A)),Lm=sl/cnt,sdL=Math.sqrt(Math.max(0,ql/cnt-Lm*Lm));
+    if(sdA>22||sdL>18)continue;
+    const R=sa?sr/sa:0,Gc=sa?sg/sa:0,B=sa?sb/sa:0;removed++;
+    const setPx=q=>{const k=q*4;d[k]=R;d[k+1]=Gc;d[k+2]=B;d[k+3]=A};
+    for(const q of comp){setPx(q);const x=q%W;if(x>0)setPx(q-1);if(x<W-1)setPx(q+1);if(q>=W)setPx(q-W);if(q<N-W)setPx(q+W)}}
+  c.putImageData(img,0,0);requestRender();
+  say(removed?`Removed ${removed} stray mark${removed>1?'s':''}. Use Undo if anything you wanted disappeared.`:'No stray marks found at this strength. Try a higher clean-up strength.');
+  if(!removed)S.undo.pop(),syncUndo();};
+$('#softenBtn').onclick=()=>{if(!S.merged)return;pushUndo();const b=blurCanvas(L.merged,1.6),x=L.merged.getContext('2d');x.save();x.globalAlpha=.5;x.drawImage(b,0,0);x.restore();requestRender()};
+
+/* ---------- finishing: adjust ---------- */
+let adjRaf=0;
+$$('.adj').forEach(s=>s.oninput=()=>{if(!S.merged)return;if(!S.adjBase){S.adjBase=clone(L.merged)}if(!adjRaf)adjRaf=requestAnimationFrame(()=>{adjRaf=0;applyAdj()})});
+function applyAdj(){const br=+$('#aBright').value,ct=+$('#aContrast').value,sa=+$('#aSat').value/100,wm=+$('#aWarm').value;
+  const src=ctxOf(S.adjBase).getImageData(0,0,W,H),d=src.data,cf=(259*(ct+255))/(255*(259-ct));
+  for(let k=0;k<d.length;k+=4){let r=d[k],g=d[k+1],b=d[k+2];r=cf*(r-128)+128+br;g=cf*(g-128)+128+br;b=cf*(b-128)+128+br;
+    const l=.299*r+.587*g+.114*b;r=l+(r-l)*(1+sa);g=l+(g-l)*(1+sa);b=l+(b-l)*(1+sa);r+=wm;b-=wm;
+    d[k]=r<0?0:r>255?255:r;d[k+1]=g<0?0:g>255?255:g;d[k+2]=b<0?0:b>255?255:b}
+  L.merged.getContext('2d').putImageData(src,0,0);requestRender();}
+function resetAdj(){$$('.adj').forEach(s=>s.value=0)}
+$('#adjDone').onclick=()=>{if(!S.adjBase)return;S.undo.push({merged:true,m:S.adjBase});S.redo=[];S.adjBase=null;resetAdj();syncUndo();say('Adjustments kept.')};
+$('#adjCancel').onclick=()=>{if(!S.adjBase)return;L.merged=S.adjBase;S.adjBase=null;resetAdj();requestRender()};
+
+/* ---------- safety switches ---------- */
+const cmp=$('#compareBtn');const on=()=>{if(S.original){S.compare=true;requestRender()}},off=()=>{S.compare=false;requestRender()};
+cmp.addEventListener('pointerdown',on);cmp.addEventListener('pointerup',off);cmp.addEventListener('pointerleave',off);cmp.addEventListener('pointercancel',off);
+let restoreArm=0;$('#restoreBtn').onclick=()=>{const b=$('#restoreBtn');if(!S.original){say('Nothing to restore yet.');return}
+  if(!restoreArm){restoreArm=1;b.textContent='Tap again to restore';setTimeout(()=>{restoreArm=0;b.textContent='Restore original'},3000);return}
+  restoreArm=0;b.textContent='Restore original';pushUndo();L.merged=clone(S.original);S.spots=[];syncUI();requestRender();say('Your painting is back to how it was when you entered the Finishing Room. Changed your mind? Tap Undo.')};
+
+/* ---------- download ---------- */
+const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40);
+function saveBlob(canvas,type,q,name){canvas.toBlob(b=>{if(!b){say('Download failed. Please try again.');return}const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},type,q)}
+function baseName(){return slug($('#dlTitle').value)||'my-painting'}
+$('#dlFull').onclick=()=>{saveBlob(compositeCanvas(false),'image/png',1,baseName()+'-full-size.png');say('Full size download started.')};
+$('#dlShare').onclick=()=>{const portrait=$('input[name=shape]:checked').value==='portrait',ow=1080,oh=portrait?1350:1080;
+  const o=mk(ow,oh),x=o.getContext('2d');x.fillStyle='#f4efe4';x.fillRect(0,0,ow,oh);
+  const src=compositeCanvas(false),credit=$('#credit').checked,foot=credit?70:0,pad=40;
+  const k=Math.min((ow-pad*2)/src.width,(oh-pad*2-foot)/src.height),w=src.width*k,h=src.height*k,px=(ow-w)/2,py=(oh-foot-h)/2;
+  x.shadowColor='rgba(0,0,0,.25)';x.shadowBlur=18;x.shadowOffsetY=4;x.drawImage(src,px,py,w,h);x.shadowColor='transparent';
+  if(credit){const t=$('#dlTitle').value.trim(),n=$('#dlName').value.trim();x.fillStyle='#3a3a3a';x.textAlign='center';x.textBaseline='middle';
+    let line1=t?`"${t}"`:'';if(n)line1+=(line1?' by ':'By ')+n;
+    if(line1){x.font='bold 26px Georgia, serif';x.fillText(line1,ow/2,oh-foot+18)}
+    x.font='18px sans-serif';x.fillStyle='#6b6457';x.fillText('Painted in The Art Studio · NuSparkLearnWow.com',ow/2,oh-foot+(line1?50:30));}
+  saveBlob(o,'image/jpeg',.9,baseName()+(portrait?'-share-portrait.jpg':'-share-square.jpg'));say('Share size download started. Ready for Facebook and Instagram.')};
+
+/* ---------- ask Mr. Paul ---------- */
+$('#askBtn').onclick=async()=>{const q=$('#askText').value.trim();if(!q)return;say(esc(q),true);$('#askText').value='';const btn=$('#askBtn');btn.disabled=true;const t=thinking();
+  try{const payload={question:q,style:S.style||'',vision:S.vision||''};if($('#askImg').checked&&S.step>=3)payload.image=paintingJpeg(900);
+    const j=await api('ask',payload);t.remove();say(esc(j.answer||'').replace(/\n/g,'<br>'))}catch(e){t.remove();say(esc(e.message))}finally{btn.disabled=false}};
+$('#askText').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#askBtn').click()}});
+
+/* ---------- banner: painted with the studio's own brushes ---------- */
+function paintBanner(){const tiles=[['Watercolor',wcTile],['Charcoal',chTile],['Impressionism',imTile],['Pop Art',popTile],['Cubism',cuTile],['Oil Painting',oilTile]];
+  const box=$('#banner');tiles.forEach(([name,fn])=>{const d=document.createElement('div');d.className='tile';const c=mk(340,220);fn(c);d.appendChild(c);const s=document.createElement('span');s.textContent=name;d.appendChild(s);box.appendChild(d)})}
+function runStroke(c,tool,pts,o){const x=ctxOf(c),br=BR[tool],b={rgb:o.rgb.slice(),size:o.size,op:o.op||.9,pr:.5,speed:4,ux:1,uy:0,px:pts[0][0],py:pts[0][1],n:0};
+  for(let i=1;i<pts.length;i++){const[x0,y0]=pts[i-1],[x1,y1]=pts[i],d=Math.hypot(x1-x0,y1-y0),sp=Math.max(1,o.size*br.spacing);
+    for(let t=0;t<d;t+=sp){const px=x0+(x1-x0)*t/d,py=y0+(y1-y0)*t/d;b.ux=(x1-x0)/d;b.uy=(y1-y0)/d;br.stamp(x,px,py,b);b.px=px;b.py=py;b.n++}}}
+function bg(c,col){const x=c.getContext('2d');x.fillStyle=col;x.fillRect(0,0,c.width,c.height)}
+function wcTile(c){bg(c,'#fbf8f1');const x=c.getContext('2d');x.globalCompositeOperation='multiply';
+  [[90,80,90,'#81c3d7'],[200,60,80,'#2f6690'],[250,150,85,'#d9a441'],[110,170,70,'#c1502e'],[170,120,60,'#6a994e']].forEach(([cx,cy,r,col])=>{const rgb=hexToRgb(col);
+    for(let i=0;i<3;i++){const g=x.createRadialGradient(cx,cy,0,cx,cy,r*(1-i*.15));g.addColorStop(0,rgba(rgb,.18));g.addColorStop(.85,rgba(rgb,.32));g.addColorStop(1,rgba(rgb,0));x.fillStyle=g;x.beginPath();x.arc(cx+i*6,cy-i*4,r,0,7);x.fill()}})}
+function chTile(c){bg(c,'#d9cdb8');runStroke(c,'charcoal',[[30,180],[110,90],[180,140],[310,40]],{rgb:[20,20,20],size:22,op:.9});runStroke(c,'charcoal',[[40,60],[160,40],[300,170]],{rgb:[50,50,50],size:14,op:.7});
+  const x=ctxOf(c);for(let i=0;i<14;i++)patchOp(x,120+i*8,120+Math.sin(i)*10,22,'smudge',.6,112+i*8,120)}
+function imTile(c){bg(c,'#f3eee2');const pal=['#4a7ab5','#8fb8de','#f2d06b','#e98a6b','#9cc58f','#b48ac9'];const x=c.getContext('2d');
+  for(let i=0;i<520;i++){const px=Math.random()*340,py=Math.random()*220,col=py<110?pal[Math.random()<.6?1:(Math.random()<.5?2:0)]:pal[Math.random()<.5?4:(Math.random()<.5?3:5)];
+    x.fillStyle=col;x.save();x.translate(px,py);x.rotate(-.5+Math.random()*.3);x.globalAlpha=.75;x.fillRect(-7,-3,14,6);x.restore()}}
+function popTile(c){bg(c,'#ffd60a');const x=c.getContext('2d');runStroke(c,'dots',[[20,30],[320,30],[320,200],[20,200],[20,30]],{rgb:[230,57,70],size:70});
+  x.fillStyle='#1d70b8';x.strokeStyle='#111';x.lineWidth=8;x.beginPath();x.arc(170,110,62,0,7);x.fill();x.stroke();x.fillStyle='#fff';x.beginPath();x.arc(150,90,16,0,7);x.fill()}
+function cuTile(c){bg(c,'#c9b896');const pal=['#6b5a45','#a08b6c','#55606b','#7d8a6a','#2e2a26','#d8c8a4'];const x=c.getContext('2d');
+  for(let i=0;i<26;i++){x.fillStyle=pal[i%pal.length];x.globalAlpha=.7;x.strokeStyle='rgba(30,25,20,.6)';x.lineWidth=2;x.beginPath();const cx=Math.random()*340,cy=Math.random()*220;
+    for(let k=0;k<3+(i%2);k++){const a=Math.random()*6.28,d=30+Math.random()*50;k?x.lineTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d):x.moveTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d)}x.closePath();x.fill();x.stroke()}}
+function oilTile(c){bg(c,'#264653');[[[0,40],[340,60]],[[0,95],[340,80]],[[0,150],[340,170]],[[0,200],[340,190]]].forEach((p,i)=>runStroke(c,'oil',p,{rgb:hexToRgb(['#2a9d8f','#e9c46a','#f4a261','#e76f51'][i]),size:26}))}
+
+
+/* ---------- painter faces (original cartoon art) ---------- */
+const FACES=[
+// 1: beret, curled mustache
+`<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#f6e3b4"/><path d="M20 100c2-18 14-26 30-26s28 8 30 26z" fill="#ffffff"/><path d="M42 76l8 10 8-10z" fill="#c8553d"/>
+<circle cx="50" cy="52" r="22" fill="#e8b894"/><circle cx="28" cy="54" r="5" fill="#e8b894"/><circle cx="72" cy="54" r="5" fill="#e8b894"/>
+<ellipse cx="50" cy="31" rx="26" ry="9" fill="#1f3b4d"/><circle cx="50" cy="22" r="3" fill="#1f3b4d"/>
+<circle cx="42" cy="50" r="2.6" fill="#2a2a2a"/><circle cx="58" cy="50" r="2.6" fill="#2a2a2a"/>
+<path d="M50 54q-3 6 0 7" stroke="#b98463" stroke-width="2" fill="none"/>
+<path d="M50 63c-4-3-10-3-14 1 3 0 5 2 8 1zM50 63c4-3 10-3 14 1-3 0-5 2-8 1z" fill="#3b2a20"/><path d="M45 67q5 3 10 0" stroke="#8a4b3a" stroke-width="2" fill="none"/></svg>`,
+// 2: beret, paint smudge, earrings
+`<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#f6e3b4"/><path d="M20 100c2-18 14-26 30-26s28 8 30 26z" fill="#2e5670"/>
+<path d="M26 56c-4-20 8-32 24-32s28 12 24 32l-4 18H30z" fill="#4a2c1a"/><circle cx="50" cy="54" r="21" fill="#a86b45"/>
+<ellipse cx="54" cy="32" rx="24" ry="8" fill="#c8553d" transform="rotate(-8 54 32)"/><circle cx="58" cy="23" r="3" fill="#c8553d"/>
+<circle cx="42" cy="52" r="2.6" fill="#2a2a2a"/><circle cx="58" cy="52" r="2.6" fill="#2a2a2a"/><path d="M42 62q8 6 16 0" stroke="#5e2b1e" stroke-width="2.4" fill="none"/>
+<circle cx="64" cy="60" r="3.5" fill="#4d96ff" opacity=".85"/><circle cx="30" cy="62" r="2.5" fill="#e9a23b"/><circle cx="70" cy="62" r="2.5" fill="#e9a23b"/></svg>`,
+// 3: older painter, round glasses, white beard, smock
+`<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#f6e3b4"/><path d="M20 100c2-18 14-26 30-26s28 8 30 26z" fill="#d9cdb8"/><circle cx="40" cy="90" r="3" fill="#e63946"/><circle cx="58" cy="94" r="3" fill="#ffd60a"/>
+<circle cx="50" cy="50" r="22" fill="#f1c9a5"/><path d="M30 56c2 18 10 24 20 24s18-6 20-24c-6 6-12 6-20 6s-14 0-20-6z" fill="#f2f2f2"/>
+<path d="M28 44c0-14 10-20 22-20s22 6 22 20c-4-6-12-8-22-8s-18 2-22 8z" fill="#e6e6e6"/>
+<circle cx="42" cy="49" r="6" fill="none" stroke="#2a2a2a" stroke-width="2"/><circle cx="58" cy="49" r="6" fill="none" stroke="#2a2a2a" stroke-width="2"/><path d="M48 49h4" stroke="#2a2a2a" stroke-width="2"/>
+<circle cx="42" cy="49" r="2" fill="#2a2a2a"/><circle cx="58" cy="49" r="2" fill="#2a2a2a"/><path d="M45 64q5 3 10 0" stroke="#8a4b3a" stroke-width="2" fill="none"/></svg>`,
+// 4: painter with brush behind ear, bandana
+`<svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#f6e3b4"/><path d="M20 100c2-18 14-26 30-26s28 8 30 26z" fill="#3f7d4e"/>
+<circle cx="50" cy="52" r="22" fill="#6b4226"/><path d="M27 42c4-14 14-18 23-18s19 4 23 18c-8-4-14-5-23-5s-15 1-23 5z" fill="#e9a23b"/><path d="M72 40l8 6-9 1z" fill="#e9a23b"/>
+<path d="M74 30l-8 22" stroke="#8a5a2b" stroke-width="3"/><path d="M74 30l2-6" stroke="#e63946" stroke-width="4" stroke-linecap="round"/>
+<circle cx="42" cy="52" r="2.6" fill="#1a1a1a"/><circle cx="58" cy="52" r="2.6" fill="#1a1a1a"/><path d="M41 62q9 7 18 0" stroke="#2a1a10" stroke-width="2.4" fill="none"/>
+<circle cx="36" cy="60" r="3" fill="#ff8fab" opacity=".5"/><circle cx="64" cy="60" r="3" fill="#ff8fab" opacity=".5"/></svg>`
+];
+let faceIdx=Math.floor(Math.random()*FACES.length);
+function setFace(i){faceIdx=(i+FACES.length)%FACES.length;$('#face').innerHTML=FACES[faceIdx]}
+
+/* ---------- start ---------- */
+setSize(1600,1200);setFace(faceIdx);buildStyleGrid();buildPalette([]);paintBanner();syncUI();render();
+say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to paint in step 1, or jump to step 2 and pick a style. I'll teach you how each style works and set up your brushes. Already have a painting from another AI tool? Upload it in step 1 for a final cleanup.");
+</script>
+</body>
+</html>
