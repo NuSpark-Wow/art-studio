@@ -48,11 +48,24 @@ async function callClaude(system, content, maxTokens) {
 
 const str = (v, max) => String(v == null ? '' : v).slice(0, max).trim();
 
+// Per-visitor limit: coach requests per hour
+const HOURLY_LIMIT = 60;
+const hits = new Map();
+function overLimit(req) {
+  const ip = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'x';
+  const now = Date.now(), list = (hits.get(ip) || []).filter(t => now - t < 3600e3);
+  if (list.length >= HOURLY_LIMIT) { hits.set(ip, list); return true; }
+  list.push(now); hits.set(ip, list);
+  if (hits.size > 20000) hits.clear();
+  return false;
+}
+
 module.exports = async (req, res) => {
   const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   const origin = req.headers.origin || '';
   if (allowed.length && !allowed.includes(origin)) return bad(res, 403, 'This tool only works on NuSpark sites.');
   if (req.method !== 'POST') return bad(res, 405, 'Use POST.');
+  if (overLimit(req)) return bad(res, 429, "You've been busy in the studio! Please take a short break and try again in a little while.");
   if (!process.env.ANTHROPIC_API_KEY) return bad(res, 500, 'Mr. Paul is not set up yet (missing API key).');
 
   let body = req.body || {};
