@@ -61,6 +61,7 @@ function overLimit(req) {
 }
 
 module.exports = async (req, res) => {
+  if (!(await require("./_lwgate")(req, res, "art-studio"))) return;
   const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
   const origin = req.headers.origin || '';
   if (allowed.length && !allowed.includes(origin)) return bad(res, 403, 'This tool only works on NuSpark sites.');
