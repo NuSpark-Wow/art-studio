@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
   const mode = str(body.mode, 20);
 
   try {
-    let system = PERSONA + '\n' + JSON_RULE, content, maxTokens = 900;
+    let system = PERSONA + '\n' + JSON_RULE, content, maxTokens = 1600;
 
     if (mode === 'vision') {
       const vision = str(body.vision, 600);
@@ -200,8 +200,13 @@ Return JSON: {"prompt":"the prompt"}` }];
       return bad(res, 400, 'Unknown request.');
     }
 
-    const raw = await callClaude(system, content, maxTokens);
-    const json = extractJson(raw);
+    let raw = await callClaude(system, content, maxTokens);
+    let json = extractJson(raw);
+    if (!json) {
+      // One quiet retry with more room and a reminder to keep it short and valid.
+      raw = await callClaude(system + '\nKeep every text field brief. Return ONLY one complete, valid JSON object.', content, Math.round(maxTokens * 1.5));
+      json = extractJson(raw);
+    }
     if (!json) return bad(res, 502, 'Mr. Paul lost his train of thought. Please try again.');
 
     if (mode === 'vision' && Array.isArray(json.styles)) json.styles = json.styles.filter(s => s && STYLES.includes(s.name)).slice(0, 3);
