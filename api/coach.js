@@ -2,6 +2,7 @@
 // Needs env var ANTHROPIC_API_KEY. Optional: ALLOWED_ORIGINS (comma list), MODEL.
 
 const MODEL = process.env.MODEL || 'claude-sonnet-5-5';
+const SAMPLE_MODEL = process.env.SAMPLE_MODEL || 'claude-haiku-5-5'; // practice samples: fast model
 
 const STYLES = ['Renaissance','Baroque','Romanticism','Realism','Impressionism','Post-Impressionism','Cubism','Surrealism',
   'Abstract Expressionism','Pop Art','Watercolor','Oil Painting','Charcoal (Black & White)','Pastel','Cartoonish'];
@@ -27,7 +28,7 @@ function extractJson(text) {
   try { return JSON.parse(text.slice(a, b + 1)); } catch (e) { return null; }
 }
 
-async function callClaude(system, content, maxTokens) {
+async function callClaude(system, content, maxTokens, model) {
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -35,7 +36,7 @@ async function callClaude(system, content, maxTokens) {
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json'
     },
-    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content }] })
+    body: JSON.stringify({ model: model || MODEL, max_tokens: maxTokens, system, messages: [{ role: 'user', content }] })
   });
   if (!r.ok) {
     const t = await r.text().catch(() => '');
@@ -117,11 +118,11 @@ Return JSON: {"paths":["SVG path d strings using only M L H V C S Q T A Z comman
       const subject = str(body.subject, 120), vision = str(body.vision, 600), style = str(body.style, 60), variant = str(body.variant, 120);
       const palette = (Array.isArray(body.palette) ? body.palette : []).filter(c => /^#[0-9a-fA-F]{6}$/.test(c)).slice(0, 8);
       if (!subject && !vision) return bad(res, 400, 'Say what to paint.');
-      maxTokens = 2600;
+      maxTokens = 2200;
       content = `Make one simple practice painting for a beginner to paint over, like a faint paint-by-numbers color map.
 Subject: "${subject || vision}"${vision && subject ? ` (the student's idea: "${vision}")` : ''}${style ? `. Suggest the ${style} style through color and shape choices` : ''}.
 Layout for this version: ${variant || 'subject large and centered'}.
-Use an SVG space 1000 wide and 750 tall. First, background shapes that together cover the whole space (sky, ground, wall, water). Then the main subject from simple filled shapes, drawn back to front. 10 to 28 shapes in total. Keep shapes simple and recognizable; no tiny details, no text.
+Use an SVG space 1000 wide and 750 tall. First, background shapes that together cover the whole space (sky, ground, wall, water). Then the main subject from simple filled shapes, drawn back to front. 10 to 22 shapes in total. Colors must be 6-digit hex like #1b2a4a. Keep shapes simple and recognizable; no tiny details, no text.
 ${palette.length ? `Use mostly these colors: ${palette.join(', ')}. You may add a lighter or darker shade of them.` : 'Use a pleasant, simple palette that suits the idea.'}
 If the subject is a copyrighted character or logo, draw a generic original version instead.
 Return JSON: {"label":"2 to 5 words describing this layout","shapes":[{"d":"SVG path d string using only M L H V C S Q T A Z commands and numbers","fill":"#rrggbb"}]}`;
@@ -212,11 +213,12 @@ Return JSON: {"prompt":"the prompt"}` }];
       return bad(res, 400, 'Unknown request.');
     }
 
-    let raw = await callClaude(system, content, maxTokens);
+    const useModel = mode === 'sample' ? SAMPLE_MODEL : undefined;
+    let raw = await callClaude(system, content, maxTokens, useModel);
     let json = extractJson(raw);
     if (!json) {
       // One quiet retry with more room and a reminder to keep it short and valid.
-      raw = await callClaude(system + '\nKeep every text field brief. Return ONLY one complete, valid JSON object.', content, Math.round(maxTokens * 1.5));
+      raw = await callClaude(system + '\nKeep every text field brief. Return ONLY one complete, valid JSON object.', content, Math.round(maxTokens * 1.5), useModel);
       json = extractJson(raw);
     }
     if (!json) return bad(res, 502, 'Mr. Paul lost his train of thought. Please try again.');
@@ -225,7 +227,8 @@ Return JSON: {"prompt":"the prompt"}` }];
     if (mode === 'check' && Array.isArray(json.spots)) json.spots = json.spots.slice(0, 6).map(sp => Object.assign(sp, { tool: FIX_TOOLS.includes(sp.tool) ? sp.tool : 'heal', color: /^#[0-9a-fA-F]{6}$/.test(sp.color || '') ? sp.color : null }));
     if (mode === 'lesson' && Array.isArray(json.brushes)) json.brushes = json.brushes.filter(b => BRUSHES.includes(b)).slice(0, 4);
     if (mode === 'sample') {
-      json.shapes = (Array.isArray(json.shapes) ? json.shapes : []).filter(sh => sh && typeof sh.d === 'string' && sh.d.length < 4000 && /^[MmLlHhVvCcSsQqTtAaZz0-9\s,.\-eE]+$/.test(sh.d) && /^#[0-9a-fA-F]{6}$/.test(sh.fill || '')).slice(0, 40);
+      const hex6 = c => { c = String(c || '').trim(); if (/^#[0-9a-fA-F]{3}$/.test(c)) c = '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3]; return c; };
+      json.shapes = (Array.isArray(json.shapes) ? json.shapes : []).map(sh => sh && Object.assign(sh, { fill: hex6(sh.fill) })).filter(sh => sh && typeof sh.d === 'string' && sh.d.length < 4000 && /^[MmLlHhVvCcSsQqTtAaZz0-9\s,.\-eE]+$/.test(sh.d) && /^#[0-9a-fA-F]{6}$/.test(sh.fill || '')).slice(0, 40);
       json.label = str(json.label, 60);
       if (!json.shapes.length) return bad(res, 502, 'Mr. Paul could not draw that sample. Try again.');
     }

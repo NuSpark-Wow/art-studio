@@ -233,7 +233,7 @@ body.lvlSimple.st3:not(.showAdv) .props .grp.adv{display:none}
 #sampleGrid button{background:#fff;border:2px solid var(--line);border-radius:10px;padding:6px;cursor:pointer;text-align:center;font-weight:700;color:var(--ink)}
 #sampleGrid button:hover{border-color:var(--accent2)}
 #sampleGrid img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#f4efe4;border-radius:6px;display:block;margin-bottom:6px}
-#sampleGrid .wait{grid-column:1/-1;text-align:center;padding:40px 10px}
+#sampleGrid .wait{grid-column:auto/span 3;text-align:center;padding:40px 10px}
 body.st3 header .banner,body.st4 header .banner,body.st5 header .banner,body.st3 header .mobile-note,body.st4 header .mobile-note,body.st5 header .mobile-note,body.st3 header .tag,body.st4 header .tag,body.st5 header .tag{display:none}
 body.st3 #guideBar{padding:8px 12px}body.st3 #guideBar #gbText{font-size:15px;margin:2px 0 6px}
 @media (max-width:1100px){aside.coach{position:fixed;max-height:none}}
@@ -1537,12 +1537,9 @@ say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to pain
     const subject=(S.plan&&S.plan.subject)||$('#outlineText').value.trim()||S.vision||'';
     if(!subject&&!S.vision){grid.innerHTML='<div class="wait">Tell Mr. Paul what you want to paint first, in step 1 (Your Vision), or type a subject under <b>Trace a picture</b>.</div>';return}
     const st=S.style?styleData(S.style):null;const palette=(S.visionPalette&&S.visionPalette.length?S.visionPalette:(st&&st.palette)||[]).slice(0,8);
-    grid.innerHTML='<div class="wait"><span class="spin" style="border-color:var(--ink);border-top-color:transparent"></span> Mr. Paul is drawing 3 practice samples… this takes about 20 seconds.</div>';
-    const results=await Promise.all(VARIANTS.map(v=>api('sample',{subject,vision:S.vision||'',style:S.style||'',palette,variant:v}).catch(e=>({error:e.message}))));
-    const ok=results.filter(r=>r&&r.shapes&&r.shapes.length);
-    if(!ok.length){grid.innerHTML='<div class="wait">Mr. Paul could not draw the samples this time. Tap <b>Draw 3 new ones</b> to try again.</div>';return}
-    grid.innerHTML='';
-    for(const r of ok){const svg=sampleSVG(r.shapes);const b=document.createElement('button');b.type='button';
+    grid.innerHTML='<div class="wait" id="sampleWait"><span class="spin" style="border-color:var(--ink);border-top-color:transparent"></span> Mr. Paul is drawing 3 practice samples. They will pop in one at a time…</div>';
+    let shown=0,done=0;
+    const addOne=r=>{const w=$('#sampleWait');const svg=sampleSVG(r.shapes);const b=document.createElement('button');b.type='button';
       b.innerHTML='<img alt="" src="data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)+'">'+esc(r.label||'Practice sample');
       b.onclick=async()=>{try{const img=await svgImg(svg);const g=L.guide.getContext('2d');g.clearRect(0,0,W,H);drawContain(img,L.guide);
           try{guidePhoto=null}catch(e){}
@@ -1550,7 +1547,11 @@ say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to pain
           say('Your practice picture is behind the canvas. Paint right over it. Tap <b>Tracing: on/off</b> at the top to hide it and check your work. Make it fainter or stronger with <b>How much of the picture shows?</b> under <b>More tools</b>.');
           if(S.level!=='exp'){const list=steps();if(list[S.gbStep]&&list[S.gbStep].sample){S.gbStep++;showStep(true)}}}
         catch(e){say(esc(e.message))}};
-      grid.appendChild(b)}}
+      if(w)grid.insertBefore(b,w);else grid.appendChild(b);shown++};
+    const one=async v=>{for(let tryN=0;tryN<2;tryN++){try{const r=await api('sample',{subject,vision:S.vision||'',style:S.style||'',palette,variant:v});if(r&&r.shapes&&r.shapes.length){addOne(r);return}}catch(e){}}};
+    await Promise.all(VARIANTS.map(v=>one(v).finally(()=>{done++})));
+    const w=$('#sampleWait');if(w)w.remove();
+    if(!shown)grid.innerHTML='<div class="wait">Mr. Paul could not draw the samples this time. Tap <b>Draw 3 new ones</b> to try again.</div>';}
   function openSamples(){$('#sampleModal').classList.remove('hide');loadSamples()}
   $('#gbSamples').onclick=openSamples;$('#sampleAgain').onclick=loadSamples;$('#sampleCancel').onclick=()=>$('#sampleModal').classList.add('hide');
   // also offer samples next to the outline button
