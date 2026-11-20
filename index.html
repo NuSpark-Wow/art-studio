@@ -195,6 +195,13 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
 @media (max-width:1100px){.layout{grid-template-columns:1fr}aside.coach{position:static;max-height:420px}}
 @media (max-width:820px){.work{grid-template-columns:1fr}.tools{flex-direction:row;flex-wrap:wrap}}
 
+/* step 2 idea banner + picks */
+#ideaBanner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#fff8ea;border:1px solid #e9d8b5;border-left:5px solid var(--accent2);border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:16px}
+#ideaBanner .sw{width:22px;height:22px}
+#ideaBanner button{margin-top:0}
+.style .pick{display:inline-block;background:var(--accent2);color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;margin-bottom:4px}
+.style.picked{border:2px solid var(--accent2)}
+.whyFit{background:#fffaf0;border-left:4px solid var(--accent2);padding:8px 10px;border-radius:6px;margin:6px 0}
 /* ===== v3: big canvas, Mr. Paul Hints drawer, levels, guided steps, practice samples ===== */
 .layout{grid-template-columns:1fr}
 aside.coach{position:fixed;top:12px;right:12px;bottom:12px;width:350px;max-height:none;z-index:60;box-shadow:0 14px 44px rgba(0,0,0,.28);transform:translateX(calc(100% + 40px));transition:transform .25s ease}
@@ -302,7 +309,7 @@ body.st3 #guideBar{padding:8px 12px}body.st3 #guideBar #gbText{font-size:15px;ma
     <div class="card">
       <h2>Pick a style</h2>
       <p>Choose a style and Mr. Paul will teach you what makes it special. The studio sets up the right brushes, colors and paper for you.</p>
-      <div class="lesson" id="lesson"></div>
+      <div id="ideaBanner" class="hide"></div><div class="lesson" id="lesson"></div>
       <div class="styles" id="styleGrid"></div>
       <div class="card alt" style="margin-top:12px">
         <b>Choose your own style</b>
@@ -897,14 +904,14 @@ function compositeCanvas(withGuide){const c=mk(W,H),x=c.getContext('2d');drawMin
 $('#visionBtn').onclick=async()=>{const v=$('#visionText').value.trim();if(v.length<3){say('Tell me a little about what you want to paint first.');return}
   S.vision=v;const btn=$('#visionBtn');btn.disabled=true;const out=$('#visionOut');out.innerHTML='<p><span class="spin" style="border-color:var(--ink);border-top-color:transparent"></span> Mr. Paul is sketching ideas…</p>';
   try{const j=await api('vision',{vision:v});let h=`<div class="idea"><b>Mr. Paul says:</b> ${esc(j.summary)}</div>`;
-    (j.styles||[]).forEach(s=>{h+=`<div class="idea"><b>${esc(s.name)}</b><br>${esc(s.why)}<br><button class="secondary useStyle" data-style="${esc(s.name)}" style="margin-top:6px">Use this style</button></div>`});
+    S.visionStyles=(j.styles||[]).filter(x=>x&&x.name).slice(0,3);
     if(j.composition)h+=`<div class="idea"><b>Where things go:</b> ${esc(j.composition)}</div>`;
     if(j.palette&&j.palette.length)h+=`<div class="idea"><b>Suggested colors</b><div class="swatches">${j.palette.map(c=>`<span class="sw" style="background:${esc(c)}" title="${esc(c)}"></span>`).join('')}</div></div>`;
-    h+=`<div class="idea" style="border-left:4px solid var(--accent2)"><b>What's next:</b> Pick a style above. On the next screen you can confirm it, learn what makes it special, or choose a different one. Your colors and Mr. Paul's step-by-step plan come with you to the canvas, and you can change colors anytime.</div>`;
+    h+=`<div class="idea" style="border-left:4px solid var(--accent2)"><b>What's next:</b> On the next screen, pick a style. Mr. Paul's top picks for your idea are marked with a star, and you can learn about each one or choose any style you like. Your colors and Mr. Paul's step-by-step plan come with you to the canvas, and you can change colors anytime.<br><button class="primary" data-go="2" style="margin-top:10px">Next: pick your style →</button></div>`;
     if(j.subject)$('#outlineText').value=String(j.subject).slice(0,80);
     S.visionPalette=(j.palette||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c));S.plan={order:(j.order||[]).slice(0,6).map(String),composition:String(j.composition||''),subject:String(j.subject||'')};S.gbStep=0;
     out.innerHTML=h;
-    out.querySelectorAll('.useStyle').forEach(b=>b.onclick=()=>{pickStyle(b.dataset.style);go(2)});
+    if(typeof buildStyleGrid==='function')buildStyleGrid();if(S.visionStyles[0]&&styleData(S.visionStyles[0].name))pickStyle(S.visionStyles[0].name);
   }catch(e){out.innerHTML='';say(esc(e.message))}finally{btn.disabled=false}};
 
 /* ---------- step 2: styles ---------- */
@@ -1455,7 +1462,7 @@ say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to pain
   const _say=say;
   say=function(html,me){const m=_say(html,me);
     if(!me&&!document.body.classList.contains('hintsOpen')){btn.classList.add('new');
-      const tmp=document.createElement('div');tmp.innerHTML=html;let t=(tmp.textContent||'').replace(/\s+/g,' ').trim();
+      const tmp=document.createElement('div');tmp.innerHTML=html;tmp.querySelectorAll('h3,h4').forEach(e=>e.append(': '));tmp.querySelectorAll('li,p,div').forEach(e=>e.append(' '));tmp.querySelectorAll('br').forEach(e=>e.replaceWith(' '));let t=(tmp.textContent||'').replace(/\s+/g,' ').trim();
       if(t&&!/thinking|sketching/i.test(t)){if(t.length>170)t=t.slice(0,167)+'…';toast.innerHTML='<b class="who">💡 Mr. Paul</b>'+esc(t);toast.style.display='block';clearTimeout(tt);tt=setTimeout(()=>toast.style.display='none',8000)}}
     return m};
 
@@ -1528,6 +1535,21 @@ say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to pain
   $('#gbBack').onclick=()=>{if(S.gbStep>0){S.gbStep--;showStep(true)}};
   $('#gbHide').onclick=()=>{S.gbHidden=true;refreshBar()};
   $('#gbShow').onclick=()=>{S.gbHidden=false;refreshBar()};
+
+
+  /* --- Step 2: keep the idea visible, Mr. Paul's picks first --- */
+  function renderIdea(){const b=$('#ideaBanner');if(!S.vision){b.classList.add('hide');return}
+    const sw=(S.visionPalette||[]).map(c=>'<span class="sw" style="background:'+esc(c)+'"></span>').join('');
+    b.innerHTML='<span>🎨 <b>Your idea:</b> <i>'+esc(S.vision)+'</i></span>'+(sw?'<span style="display:inline-flex;gap:4px">'+sw+'</span>':'')+'<button class="linkBtn" data-go="1" type="button">Change my idea</button>';
+    b.classList.remove('hide')}
+  const _bsg=buildStyleGrid;
+  buildStyleGrid=function(){_bsg();const picks=(S.visionStyles||[]).map(x=>x.name);const g=$('#styleGrid');
+    picks.slice().reverse().forEach(n=>{const el=[...g.querySelectorAll('.style')].find(b=>b.dataset.style===n);if(el){el.classList.add('picked');el.insertAdjacentHTML('afterbegin','<span class="pick">⭐ Mr. Paul\'s pick</span>');g.prepend(el)}});
+    renderIdea()};
+  const _sl=showLesson;
+  showLesson=function(name,st){_sl(name,st);const p=(S.visionStyles||[]).find(x=>x.name===name);
+    if(p&&p.why){const box=$('#lesson');const h3=box.querySelector('h3');const d=document.createElement('div');d.className='whyFit';d.innerHTML='<b>Why it fits your idea:</b> '+esc(p.why);(h3&&h3.nextElementSibling?h3.nextElementSibling:h3).after(d)}};
+  const _go2=go;go=function(n){_go2(n);if(+n===2)renderIdea()};
 
   /* --- 3 practice samples --- */
   const VARIANTS=['the subject large and centered, filling most of the picture','the subject smaller, with more of the scene around it','a different angle or side view, with the subject off to one side'];
