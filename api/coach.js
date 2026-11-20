@@ -113,6 +113,18 @@ Use an SVG coordinate space of width 1000 and height 750. Keep the drawing cente
 Use bold, simple outline shapes only (like a coloring book): main body shapes and a few key details. 6 to 30 paths.
 If the subject is a copyrighted character or logo, draw a generic original version instead.
 Return JSON: {"paths":["SVG path d strings using only M L H V C S Q T A Z commands and numbers"],"note":"one short sentence on how to paint over it"}`;
+    } else if (mode === 'sample') {
+      const subject = str(body.subject, 120), vision = str(body.vision, 600), style = str(body.style, 60), variant = str(body.variant, 120);
+      const palette = (Array.isArray(body.palette) ? body.palette : []).filter(c => /^#[0-9a-fA-F]{6}$/.test(c)).slice(0, 8);
+      if (!subject && !vision) return bad(res, 400, 'Say what to paint.');
+      maxTokens = 2600;
+      content = `Make one simple practice painting for a beginner to paint over, like a faint paint-by-numbers color map.
+Subject: "${subject || vision}"${vision && subject ? ` (the student's idea: "${vision}")` : ''}${style ? `. Suggest the ${style} style through color and shape choices` : ''}.
+Layout for this version: ${variant || 'subject large and centered'}.
+Use an SVG space 1000 wide and 750 tall. First, background shapes that together cover the whole space (sky, ground, wall, water). Then the main subject from simple filled shapes, drawn back to front. 10 to 28 shapes in total. Keep shapes simple and recognizable; no tiny details, no text.
+${palette.length ? `Use mostly these colors: ${palette.join(', ')}. You may add a lighter or darker shade of them.` : 'Use a pleasant, simple palette that suits the idea.'}
+If the subject is a copyrighted character or logo, draw a generic original version instead.
+Return JSON: {"label":"2 to 5 words describing this layout","shapes":[{"d":"SVG path d string using only M L H V C S Q T A Z commands and numbers","fill":"#rrggbb"}]}`;
     } else if (mode === 'check') {
       const image = str(body.image, 2000000);
       if (image.length < 100) return bad(res, 400, 'No painting received.');
@@ -212,6 +224,11 @@ Return JSON: {"prompt":"the prompt"}` }];
     if (mode === 'vision' && Array.isArray(json.styles)) json.styles = json.styles.filter(s => s && STYLES.includes(s.name)).slice(0, 3);
     if (mode === 'check' && Array.isArray(json.spots)) json.spots = json.spots.slice(0, 6).map(sp => Object.assign(sp, { tool: FIX_TOOLS.includes(sp.tool) ? sp.tool : 'heal', color: /^#[0-9a-fA-F]{6}$/.test(sp.color || '') ? sp.color : null }));
     if (mode === 'lesson' && Array.isArray(json.brushes)) json.brushes = json.brushes.filter(b => BRUSHES.includes(b)).slice(0, 4);
+    if (mode === 'sample') {
+      json.shapes = (Array.isArray(json.shapes) ? json.shapes : []).filter(sh => sh && typeof sh.d === 'string' && sh.d.length < 4000 && /^[MmLlHhVvCcSsQqTtAaZz0-9\s,.\-eE]+$/.test(sh.d) && /^#[0-9a-fA-F]{6}$/.test(sh.fill || '')).slice(0, 40);
+      json.label = str(json.label, 60);
+      if (!json.shapes.length) return bad(res, 502, 'Mr. Paul could not draw that sample. Try again.');
+    }
     if (Array.isArray(json.palette)) json.palette = json.palette.filter(c => /^#[0-9a-fA-F]{6}$/.test(c)).slice(0, 6);
     return res.status(200).json(json);
   } catch (e) {

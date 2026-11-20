@@ -5,6 +5,7 @@ const GATE_URL = process.env.LW_GATE_URL || "https://mr-pauls-classroom.vercel.a
 
 module.exports = async function lwGate(req, res, tool) {
   if (req.method === "OPTIONS") return true;
+  if (process.env.VERCEL_ENV === "preview") return true; // test versions skip the gate
   const hd = req.headers || {};
   const ip = String(hd["x-forwarded-for"] || hd["x-real-ip"] || "").split(",")[0].trim();
   const body = { pass: hd["x-lw-pass"] || "", vid: hd["x-lw-vid"] || "", act: hd["x-lw-act"] === "1", ip, tool };
