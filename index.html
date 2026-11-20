@@ -1553,9 +1553,11 @@ say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to pain
   const _sl=showLesson;
   showLesson=function(name,st){_sl(name,st);const p=(S.visionStyles||[]).find(x=>x.name===name);
     if(p&&p.why){const box=$('#lesson');const h3=box.querySelector('h3');const d=document.createElement('div');d.className='whyFit';d.innerHTML='<b>Why it fits your idea:</b> '+esc(p.why);(h3&&h3.nextElementSibling?h3.nextElementSibling:h3).after(d)}};
-  function renderIdeaLine(){const b=$('#ideaLine');if(!S.vision||S.step!==3){b.classList.add('hide');return}
+  function renderIdeaLine(){const b=$('#ideaLine');if(S.step!==3){b.classList.add('hide');return}
     const sw=(S.visionPalette||[]).map(c=>'<span class="sw" style="background:'+esc(c)+'" title="'+esc(c)+'"></span>').join('');
-    b.innerHTML='<span>🎨 <b>Your idea:</b> <i>'+esc(S.vision)+'</i></span>'+(S.style?'<span>· <b>Style:</b> '+esc(S.style)+'</span>':'')+(sw?'<span style="display:inline-flex;gap:4px">'+sw+'</span>':'');
+    b.innerHTML=(S.vision?'<span>🎨 <b>Your idea:</b> <i>'+esc(S.vision)+'</i></span>':'<span>🎨 <b>Your painting</b></span>')+(S.style?'<span>· <b>Style:</b> '+esc(S.style)+'</span>':'')+(sw?'<span style="display:inline-flex;gap:4px">'+sw+'</span>':'');
+    b.insertAdjacentHTML('beforeend','<button class="primary" id="doneBtn" type="button" style="margin:0 0 0 auto;font-size:16px;padding:8px 18px">✔ OK, I\'m done →</button>');
+    $('#doneBtn').onclick=()=>{go(4);say('Nice work! This is the Finishing Room. Tap <b>Check my painting</b> and I will point out spots to touch up. Want to keep painting? Tap <b>3 Paint</b> at the top anytime.')};
     b.querySelectorAll('.sw').forEach(x=>x.onclick=()=>{const c=x.title;S.rgb=hexToRgb(c);$('#color').value=c});
     b.classList.remove('hide')}
   const _go2=go;go=function(n){_go2(n);if(+n===2)renderIdea();renderIdeaLine()};
