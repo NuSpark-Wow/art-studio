@@ -857,7 +857,7 @@ function showLesson(name,st){const box=$('#lesson');box.style.display='block';co
    ${artists.length?`<p><b>Famous artists:</b> ${artists.map(esc).join(', ')}</p>`:''}
    ${st.tech&&st.tech.length?`<b>Techniques to try</b><ul>${st.tech.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
    ${st.tip?`<p><b>Mr. Paul's paint-along tip:</b> ${esc(st.tip)}</p>`:''}</div></div>
-   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes, a ${esc(name)} palette and ${esc($('#paper').selectedOptions[0].text.toLowerCase())} paper. Its history stays on screen below your canvas while you paint.</div>`;}
+   <div class="note">The studio is set up with ${S.recommended.map(k=>BR[k].name).join(', ')} brushes, a ${esc(name)} palette and ${esc($('#paper').selectedOptions[0].text.toLowerCase().replace(/\s*paper\s*$/,''))} paper. Its history stays on screen below your canvas while you paint.</div>`;}
 function renderHistory(){const box=$('#historyPanel');const name=S.style;
   if(!name){box.innerHTML='<h3>Style History</h3><div class="note">Pick a style from the Style menu above to see its history, famous artists and famous paintings here.</div>';return}
   const h=HISTORY[name]||(S.custom[name]&&S.custom[name].hist)||null;const u=exampleURL(name);
