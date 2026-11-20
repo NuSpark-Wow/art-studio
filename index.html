@@ -900,7 +900,7 @@ $('#visionBtn').onclick=async()=>{const v=$('#visionText').value.trim();if(v.len
     (j.styles||[]).forEach(s=>{h+=`<div class="idea"><b>${esc(s.name)}</b><br>${esc(s.why)}<br><button class="secondary useStyle" data-style="${esc(s.name)}" style="margin-top:6px">Use this style</button></div>`});
     if(j.composition)h+=`<div class="idea"><b>Where things go:</b> ${esc(j.composition)}</div>`;
     if(j.palette&&j.palette.length)h+=`<div class="idea"><b>Suggested colors</b><div class="swatches">${j.palette.map(c=>`<span class="sw" style="background:${esc(c)}" title="${esc(c)}"></span>`).join('')}</div></div>`;
-    if(j.order&&j.order.length)h+=`<div class="idea"><b>Paint in this order</b><ol>${j.order.map(o=>`<li>${esc(o)}</li>`).join('')}</ol></div>`;
+    h+=`<div class="idea" style="border-left:4px solid var(--accent2)"><b>What's next:</b> Pick a style above. On the next screen you can confirm it, learn what makes it special, or choose a different one. Your colors and Mr. Paul's step-by-step plan come with you to the canvas, and you can change colors anytime.</div>`;
     if(j.subject)$('#outlineText').value=String(j.subject).slice(0,80);
     S.visionPalette=(j.palette||[]).filter(c=>/^#[0-9a-f]{6}$/i.test(c));S.plan={order:(j.order||[]).slice(0,6).map(String),composition:String(j.composition||''),subject:String(j.subject||'')};S.gbStep=0;
     out.innerHTML=h;
