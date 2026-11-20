@@ -196,6 +196,9 @@ footer{padding:14px 18px;font-size:12px;color:var(--muted);border-top:1px solid 
 @media (max-width:820px){.work{grid-template-columns:1fr}.tools{flex-direction:row;flex-wrap:wrap}}
 
 /* step 2 idea banner + picks */
+#ideaLine{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:15px;margin:0 0 8px;padding:6px 12px;background:#fff;border:1px solid var(--line);border-radius:10px}
+#ideaLine .sw{width:18px;height:18px}
+
 #ideaBanner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#fff8ea;border:1px solid #e9d8b5;border-left:5px solid var(--accent2);border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:16px}
 #ideaBanner .sw{width:22px;height:22px}
 #ideaBanner button{margin-top:0}
@@ -396,6 +399,7 @@ body.st3 #guideBar{padding:8px 12px}body.st3 #guideBar #gbText{font-size:15px;ma
     <div class="compareBar s5 hide" id="compareBar">
       <span>Yours</span><input type="range" id="wipe" min="0" max="100" value="50" data-explain="wipe"><span>AI version</span>
     </div>
+    <div id="ideaLine" class="hide"></div>
     <div id="guideBar" class="hide">
       <div class="gbHead"><span id="gbCount"></span> · Paint with Mr. Paul</div>
       <div class="gbProg" id="gbProg"></div>
@@ -1549,7 +1553,13 @@ say("Hi, it's Mr. Paul. Welcome to The Art Studio. Tell me what you want to pain
   const _sl=showLesson;
   showLesson=function(name,st){_sl(name,st);const p=(S.visionStyles||[]).find(x=>x.name===name);
     if(p&&p.why){const box=$('#lesson');const h3=box.querySelector('h3');const d=document.createElement('div');d.className='whyFit';d.innerHTML='<b>Why it fits your idea:</b> '+esc(p.why);(h3&&h3.nextElementSibling?h3.nextElementSibling:h3).after(d)}};
-  const _go2=go;go=function(n){_go2(n);if(+n===2)renderIdea()};
+  function renderIdeaLine(){const b=$('#ideaLine');if(!S.vision||S.step!==3){b.classList.add('hide');return}
+    const sw=(S.visionPalette||[]).map(c=>'<span class="sw" style="background:'+esc(c)+'" title="'+esc(c)+'"></span>').join('');
+    b.innerHTML='<span>🎨 <b>Your idea:</b> <i>'+esc(S.vision)+'</i></span>'+(S.style?'<span>· <b>Style:</b> '+esc(S.style)+'</span>':'')+(sw?'<span style="display:inline-flex;gap:4px">'+sw+'</span>':'');
+    b.querySelectorAll('.sw').forEach(x=>x.onclick=()=>{const c=x.title;S.rgb=hexToRgb(c);$('#color').value=c});
+    b.classList.remove('hide')}
+  const _go2=go;go=function(n){_go2(n);if(+n===2)renderIdea();renderIdeaLine()};
+  const _ps=pickStyle;pickStyle=function(n,stay){_ps(n,stay);renderIdeaLine()};
 
   /* --- 3 practice samples --- */
   const VARIANTS=['the subject large and centered, filling most of the picture','the subject smaller, with more of the scene around it','a different angle or side view, with the subject off to one side'];
