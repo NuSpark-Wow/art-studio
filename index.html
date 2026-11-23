@@ -974,7 +974,13 @@ function renderHistory(){const box=$('#historyPanel');const name=S.style;
   box.innerHTML=`<h3>${esc(name)}: Style History</h3><div class="cols">
    <div>${u?`<img src="${u}" alt="" style="width:100%;max-width:260px;border-radius:8px;border:1px solid var(--line);float:right;margin:0 0 8px 12px">`:''}<p>${esc(h.history)}</p></div>
    <div><b>Famous artists</b><ul>${h.artists.map(a=>`<li><b>${esc(a[0])}</b>: ${esc(a[1])}</li>`).join('')}</ul></div>
-   <div><b>${name==='Cartoonish'?'Famous works':'Famous paintings'}</b> <span class="note">(opens in a new window)</span><ul>${h.works.map(w=>`<li><a href="${wikiLink(w[4]||w[0])}" target="_blank" rel="noopener">${esc(w[0])}</a><br><span class="note">${esc(w[1])}, ${esc(w[2])}${w[3]?' · '+esc(w[3]):''}</span></li>`).join('')}</ul></div></div>`}
+   <div><b>${name==='Cartoonish'?'Famous works':'Famous paintings'}</b> <span class="note">(opens in a new window)</span><ul>${h.works.map(w=>`<li><a href="${wikiLink(w[4]||w[0])}" target="_blank" rel="noopener">${esc(w[0])}</a><br><span class="note">${esc(w[1])}, ${esc(w[2])}${w[3]?' · '+esc(w[3]):''}</span><br><button type="button" class="mstr" data-w="${esc(w[0])}" data-a="${esc(w[1])}" style="margin-top:4px;font-size:12.5px;padding:4px 9px;border-radius:8px;border:1px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer">🎨 Paint like this master</button></li>`).join('')}</ul></div></div>`;
+  box.querySelectorAll('.mstr').forEach(b=>b.onclick=()=>paintLikeMaster(b.dataset.w,b.dataset.a,name))}
+// Paint Like the Masters: Mr. Paul breaks a famous painting into 3 techniques to try right here in the studio.
+async function paintLikeMaster(work,artist,style){try{window.openHints&&window.openHints()}catch(e){}const t=thinking('Mr. Paul is studying '+work+'…');
+  try{const j=await api('ask',{style,vision:(S.vision||''),question:`Teach me to paint like "${work}" by ${artist}. Give exactly 3 numbered techniques from that painting that I can try right now in this studio (name the brush or tool to use for each), one short sentence each, then one sentence on what to paint first.`});
+    t.remove();say(`<h4>🎨 Paint like the masters: ${esc(work)}</h4>${esc(j.answer||'').replace(/(\d)\. /g,'<br><b>$1.</b> ')}<br><span class="note">Tip: open the painting with its link above and keep it beside your canvas while you work.</span>`)}
+  catch(e){t.remove();say(esc(e.message))}}
 function buildStudioStyleMenu(){const sel=$('#studioStyle');const names=Object.keys(STYLES).concat(Object.keys(S.custom));
   sel.innerHTML='<option value="">Pick a style…</option>'+names.map(n=>`<option${n===S.style?' selected':''}>${esc(n)}</option>`).join('')}
 function pickStyle(name,stay){const st=styleData(name);if(!st){customStyle(name);return}if(S.style!==name)setFace(faceIdx+1);S.style=name;
